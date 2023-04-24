@@ -11,7 +11,6 @@ using UnhollowerBaseLib;
 using UnhollowerBaseLib.Runtime;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Tables;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using WildfrostModMiya;
 using Console = System.Console;
 using File = Il2CppSystem.IO.File;

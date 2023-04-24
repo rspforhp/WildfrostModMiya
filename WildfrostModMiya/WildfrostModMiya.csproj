@@ -5,111 +5,127 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Reference Include="0Harmony">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\0Harmony.dll</HintPath>
-      </Reference>
-      <Reference Include="Assembly-CSharp">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppDeadExtensions">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2CppDeadExtensions.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppDeadRandom">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2CppDeadRandom.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppDeadSafe">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2CppDeadSafe.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppInterop.Common">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\Il2CppInterop.Common.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppInterop.Generator">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\Il2CppInterop.Generator.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppInterop.Runtime">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2Cppmscorlib">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2Cppmscorlib.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppNewtonsoft.Json">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2CppNewtonsoft.Json.dll</HintPath>
-      </Reference>
-      <Reference Include="Il2CppSystem.Core">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Il2CppSystem.Core.dll</HintPath>
-      </Reference>
-      <Reference Include="MelonLoader">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\MelonLoader.dll</HintPath>
-      </Reference>
-      <Reference Include="MelonLoader.NativeHost">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\MelonLoader.NativeHost.dll</HintPath>
-      </Reference>
-      <Reference Include="MelonStartScreen">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\net6\MelonStartScreen.dll</HintPath>
-      </Reference>
-      <Reference Include="UnhollowerBaseLib">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\UserLibs\UnhollowerBaseLib.dll</HintPath>
-      </Reference>
-      <Reference Include="UnhollowerRuntimeLib">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\UserLibs\UnhollowerRuntimeLib.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.Localization">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Unity.Localization.dll</HintPath>
-      </Reference>
-      <Reference Include="Unity.ResourceManager">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\Unity.ResourceManager.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.CoreModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.Il2CppAssetBundleManager">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Managed\UnityEngine.Il2CppAssetBundleManager.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.Il2CppImageConversionManager">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Managed\UnityEngine.Il2CppImageConversionManager.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ImageConversionModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.ImageConversionModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.IMGUIModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.IMGUIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.InputLegacyModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.InputModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.JSONSerializeModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.JSONSerializeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.LocalizationModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.LocalizationModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UI">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.UI.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.UIElementsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsNativeModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.UIElementsNativeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Il2CppAssemblies\UnityEngine.UIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UmbraModule">
-        <HintPath>..\..\..\..\Games\Wildfrost v1.0.4\MelonLoader\Dependencies\Il2CppAssemblyGenerator\UnityDependencies\UnityEngine.UmbraModule.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
     <ItemGroup>
       <PackageReference Include="System.Linq" Version="4.3.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <Reference Include="0Harmony">
+        <HintPath>lib\0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>lib\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp-firstpass">
+        <HintPath>lib\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppDeadExtensions">
+        <HintPath>lib\Il2CppDeadExtensions.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppDeadRandom">
+        <HintPath>lib\Il2CppDeadRandom.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppDeadSafe">
+        <HintPath>lib\Il2CppDeadSafe.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppInterop.Common">
+        <HintPath>lib\Il2CppInterop.Common.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppInterop.Generator">
+        <HintPath>lib\Il2CppInterop.Generator.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppInterop.Runtime">
+        <HintPath>lib\Il2CppInterop.Runtime.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2Cppmscorlib">
+        <HintPath>lib\Il2Cppmscorlib.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem">
+        <HintPath>lib\Il2CppSystem.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Configuration">
+        <HintPath>lib\Il2CppSystem.Configuration.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Core">
+        <HintPath>lib\Il2CppSystem.Core.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Data">
+        <HintPath>lib\Il2CppSystem.Data.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Numerics">
+        <HintPath>lib\Il2CppSystem.Numerics.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Runtime.Serialization">
+        <HintPath>lib\Il2CppSystem.Runtime.Serialization.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Transactions">
+        <HintPath>lib\Il2CppSystem.Transactions.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Xml">
+        <HintPath>lib\Il2CppSystem.Xml.dll</HintPath>
+      </Reference>
+      <Reference Include="Il2CppSystem.Xml.Linq">
+        <HintPath>lib\Il2CppSystem.Xml.Linq.dll</HintPath>
+      </Reference>
+      <Reference Include="MelonLoader">
+        <HintPath>lib\MelonLoader.dll</HintPath>
+      </Reference>
+      <Reference Include="MelonLoader.NativeHost">
+        <HintPath>lib\MelonLoader.NativeHost.dll</HintPath>
+      </Reference>
+      <Reference Include="MelonStartScreen">
+        <HintPath>lib\MelonStartScreen.dll</HintPath>
+      </Reference>
+      <Reference Include="UnhollowerBaseLib">
+        <HintPath>lib\UnhollowerBaseLib.dll</HintPath>
+      </Reference>
+      <Reference Include="UnhollowerRuntimeLib">
+        <HintPath>lib\UnhollowerRuntimeLib.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.Localization">
+        <HintPath>lib\Unity.Localization.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine">
+        <HintPath>lib\UnityEngine.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>lib\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.ImageConversionModule">
+        <HintPath>lib\UnityEngine.ImageConversionModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>lib\UnityEngine.IMGUIModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.InputLegacyModule">
+        <HintPath>lib\UnityEngine.InputLegacyModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.InputModule">
+        <HintPath>lib\UnityEngine.InputModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.JSONSerializeModule">
+        <HintPath>lib\UnityEngine.JSONSerializeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.LocalizationModule">
+        <HintPath>lib\UnityEngine.LocalizationModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.Physics2DModule">
+        <HintPath>lib\UnityEngine.Physics2DModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.PhysicsModule">
+        <HintPath>lib\UnityEngine.PhysicsModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>lib\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIElementsModule">
+        <HintPath>lib\UnityEngine.UIElementsModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIElementsNativeModule">
+        <HintPath>lib\UnityEngine.UIElementsNativeModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIModule">
+        <HintPath>lib\UnityEngine.UIModule.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
     
