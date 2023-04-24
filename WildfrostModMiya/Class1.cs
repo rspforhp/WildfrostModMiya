@@ -1504,6 +1504,26 @@ public class CardBuilder
         }
     }
 
+    public enum VanillaCardPools
+    {
+        None,
+        Boss,
+        BossSmall,
+        Clunker,
+        Enemy,
+        Friendly,
+        Item,
+        Leader,
+        Miniboss,
+        Summoned,
+    }
+    //NOT MADE
+    public CardBuilder AddCardToCampaignNode(string node,int tier)
+    {
+        data.value = tier;
+        return this;
+    }
+
     public CardBuilder AddStartWithEffects(params EffectData[] Effects)
     {
         var dictionary = AddressableLoader.groups["StatusEffectData"].lookup;
@@ -1753,6 +1773,27 @@ public class Mod : MelonMod
     public static bool CardsAdded = false;
 
     public static CardData debug = new() { forceTitle = "APIADDDED" };
+
+    [HarmonyPatch(typeof(LogSystem), nameof(LogSystem.Write))]
+    class WritePatch
+    {
+        [HarmonyPostfix]
+        static void Postfix(string str)
+        {
+            Mod.Instance.LoggerInstance.Msg(str);
+        }
+    }
+    
+    
+    [HarmonyPatch(typeof(LogSystem), nameof(LogSystem.Log), new [] { typeof(string) })]
+    class LogPatch
+    {
+        [HarmonyPostfix]
+        static void Postfix(string str)
+        {
+            Mod.Instance.LoggerInstance.Msg(str);
+        }
+    }
 
 
     [HarmonyPatch(typeof(MetaprogressionSystem), nameof(MetaprogressionSystem.IsUnlocked), typeof(string),
