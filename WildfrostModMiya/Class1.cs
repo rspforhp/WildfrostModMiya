@@ -1671,7 +1671,8 @@ public static class WildFrostAPI
             var builder = new CardBuilder()
                 .SetTitle(data.Title)
                 .SetStats(data.Health, data.Damage, data.Counter)
-                .AddAttackEffects(data.AttackEffects);
+                .AddAttackEffects(data.AttackEffects)
+                .AddStartWithEffects(data.StartWithEffects);
 
             cardBuilders.Add(builder
             );
@@ -1699,6 +1700,7 @@ public class Mod : MelonMod
         public int? Health;
         public int Counter;
         public CardBuilder.EffectData[] AttackEffects;
+        public CardBuilder.EffectData[] StartWithEffects;
     }
 
     public override void OnInitializeMelon()
