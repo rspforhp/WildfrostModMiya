@@ -1,0 +1,12 @@
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0-windows\WildfrostModMiya.deps.json
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0-windows\WildfrostModMiya.dll
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0-windows\WildfrostModMiya.pdb
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.csproj.AssemblyReference.cache
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.GeneratedMSBuildEditorConfig.editorconfig
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.AssemblyInfoInputs.cache
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.AssemblyInfo.cs
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.csproj.CoreCompileInputs.cache
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.dll
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\refint\WildfrostModMiya.dll
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\WildfrostModMiya.pdb
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\obj\Debug\net6.0-windows\ref\WildfrostModMiya.dll
