@@ -11,6 +11,7 @@ using MelonLoader.TinyJSON;
 using UnityEngine;
 using UnityEngine.Localization;
 using WildfrostModMiya;
+using Console = Il2Cpp.Console;
 using File = Il2CppSystem.IO.File;
 using IArrayExt = Il2Cpp.IArrayExt;
 using Object = UnityEngine.Object;
@@ -428,16 +429,19 @@ public class CardBuilder
                 break;
             }
         }
-
         data = woodheadCard.Clone();
+        data.value = 1;
         data.original = data;
+        data.customData ??= new Il2CppSystem.Collections.Generic.Dictionary<string, Il2CppSystem.Object>();
+        data.customData.Add("AddedByCardLoader",null);
     }
 
     public CardData data;
 
     public CardBuilder SetTitle(string title = "")
     {
-        // data.name = title; THIS IS SO THE GAME DOESNT ERRORS
+        //data.name = title;
+        data.customData.Add("CardLoaderName",title);
         data.titleFallback = title;
         data.forceTitle = title;
         return this;
@@ -1504,23 +1508,71 @@ public class CardBuilder
         }
     }
 
-    public enum VanillaCardPools
+    public enum VanillaClassesNames
     {
         None,
-        Boss,
-        BossSmall,
-        Clunker,
-        Enemy,
-        Friendly,
-        Item,
-        Leader,
-        Miniboss,
-        Summoned,
+        Basic,
+        Clunk,
+        Magic,
+        Tutorial,
     }
-    //NOT MADE
-    public CardBuilder AddCardToCampaignNode(string node,int tier)
+
+    public enum VanillaPoolsNames
     {
-        data.value = tier;
+        None,
+        
+        BasicItemPool,
+        BasicUnitPool,
+        BasicCharmPool,
+
+        
+        GeneralItemPool,
+        GeneralUnitPool,
+        GeneralCharmPool,
+
+        SnowItemPool,
+        SnowUnitPool,
+        SnowCharmPool,
+
+        ClunkItemPool,
+        ClunkUnitPool,
+        ClunkCharmPool,
+
+        MagicItemPool,
+        MagicUnitPool,
+        MagicCharmPool,
+    }
+
+    public CardBuilder AddCardToClassAndPool(string className, VanillaPoolsNames poolName, int weight=1,int value=1) =>
+        AddCardToClassAndPool(className, poolName.ToString().Replace("VanillaPoolsNames.", ""),weight, value);
+
+
+    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, VanillaPoolsNames poolName, int weight=1,int value=1) =>
+        AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""),
+            poolName.ToString().Replace("VanillaPoolsNames.", ""),weight, value);
+
+    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, string poolName,int weight=1, int value=1) =>
+        AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""), poolName,weight, value);
+
+    public CardBuilder AddCardToClassAndPool(string className, string poolName,int weight=1, int value=100)
+    {
+        if(!AddressableLoader.groups.ContainsKey("ClassData")) 
+            AddressableLoader.ForceLoadGroup("ClassData");
+        foreach (var pool in AddressableLoader.groups["ClassData"].lookup[className].Cast<ClassData>().rewardPools)
+        {
+            if (pool.name==poolName)
+            {
+                for (int i = 0; i < weight; i++)
+                {
+                    pool.list.Add(data);
+
+                }
+               // pool.list.Clear();//DEEBUG
+                Mod.Instance.LoggerInstance.Msg($"Added card {data.title} to pool {poolName} of class {className} {weight} times!");
+                break;
+            }
+        }
+        data.value = value;
         return this;
     }
 
@@ -1588,6 +1640,9 @@ public class CardBuilder
 
     public CardBuilder AddTraits(params TraitData[] Traits)
     {
+        if(!AddressableLoader.groups.ContainsKey("TraitData")) 
+            AddressableLoader.ForceLoadGroup("TraitData");
+
         var dictionary = AddressableLoader.groups["TraitData"].lookup;
         foreach (var trait in Traits)
             try
@@ -1675,8 +1730,9 @@ public static class WildFrostAPI
         */
     }
 
-    internal static void AddAllCards(List<CardBuilder> cardBuilders)
+    private static IEnumerator AddAllCardsCoroutine(List<CardBuilder> cardBuilders)
     {
+        yield return new WaitUntil((Func<bool>) (() => AddressableLoader.groups.ContainsKey("TraitData")));
         var loc = typeof(Mod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
         var jsonCardsLoc = loc + "JsonCards\\";
         Mod.Instance.LoggerInstance.Msg(JSON.Dump(new Mod.JSONCardData
@@ -1707,6 +1763,12 @@ public static class WildFrostAPI
             AddressableLoader.groups["CardData"].list.Add(card);
         }
     }
+
+    internal static void AddAllCards(List<CardBuilder> cardBuilders)
+    {
+        MelonLoader.MelonCoroutines.Start(AddAllCardsCoroutine(cardBuilders));
+        
+    }
 }
 
 public class Mod : MelonMod
@@ -1723,6 +1785,52 @@ public class Mod : MelonMod
         public CardBuilder.EffectData[] StartWithEffects;
     }
 
+    
+    
+    [HarmonyPatch(typeof(CardManager), nameof(CardManager.Get))]
+    class CardManagerGetPatch
+    {
+        [HarmonyPrefix]
+        static void Prefix(ref CardData data,  CardController controller, Character owner, bool inPlay, Card __result, CardManager __instance)
+        {
+            if (data.customData == null || !data.customData.ContainsKey("CardLoaderName")) return;
+            Mod.Instance.LoggerInstance.Msg(System.ConsoleColor.Blue,$"Hey this shit run! WHY? {data.name} {data.titleFallback} {data.forceTitle}");
+            data.name = "NakedGnome";
+        }
+    }
+    
+    [HarmonyPatch(typeof(SaveSystem), nameof(SaveSystem.ConvertSaveFile))]
+    class DONOTWIPESAVES_Part1
+    {
+        [HarmonyPrefix]
+        static bool Prefix()
+        {
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(VersionCompatibility.Profile), nameof(VersionCompatibility.Profile.Check))]
+    class DONOTWIPESAVES_Part2
+    {
+        [HarmonyPrefix]
+        static bool Prefix()
+        {
+            return false;
+        }
+    }
+
+    public override void OnFixedUpdate()
+    {
+        if (SaveSystem.settings is { prettyPrint: false })
+        {
+            SaveSystem.settings.encryptionType = ES3Settings.unencryptedUncompressedSettings.encryptionType;
+            SaveSystem.settings.compressionType = ES3Settings.unencryptedUncompressedSettings.compressionType;
+            SaveSystem.settings.prettyPrint = true;
+        }
+        base.OnFixedUpdate();
+    }
+
+    
     public override void OnInitializeMelon()
     {
         Instance = this;
@@ -1736,7 +1844,11 @@ public class Mod : MelonMod
                 .SetStats(damage: 1)
                 .SetIsItem(true)
                 .AddAttackEffects(new CardBuilder.EffectData("Demonize"))
-                .AddTraits(new CardBuilder.TraitData("Noomlin")));
+                .AddTraits(new CardBuilder.TraitData("Noomlin"))
+                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Basic, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
+                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Clunk, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
+                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Magic, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
+            );
 
 
             /*  A card user DJ Rose#6020 suggested to make for testing purposes
@@ -1753,6 +1865,8 @@ public class Mod : MelonMod
             return list;
         };
     }
+
+ 
 
 
     public override void OnUpdate()
@@ -1780,20 +1894,14 @@ public class Mod : MelonMod
         [HarmonyPostfix]
         static void Postfix(string str)
         {
+            #if logtoconsole
             Mod.Instance.LoggerInstance.Msg(str);
+#endif
         }
     }
-    
-    
-    [HarmonyPatch(typeof(LogSystem), nameof(LogSystem.Log), new [] { typeof(string) })]
-    class LogPatch
-    {
-        [HarmonyPostfix]
-        static void Postfix(string str)
-        {
-            Mod.Instance.LoggerInstance.Msg(str);
-        }
-    }
+
+
+
 
 
     [HarmonyPatch(typeof(MetaprogressionSystem), nameof(MetaprogressionSystem.IsUnlocked), typeof(string),
@@ -1852,6 +1960,8 @@ public class Mod : MelonMod
     public Rect _rect = new(0, 0, 175, 300);
     public string CardName;
 
+  
+
     public override void OnGUI()
     {
         var e = Event.current;
@@ -1864,6 +1974,11 @@ public class Mod : MelonMod
         GUI.BeginGroup(_rect, "");
         GUILayout.Label("Enter the card name: ");
         CardName = GUILayout.TextField(CardName);
+        if (GUILayout.Button("Try win battle?"))
+        {
+          Battle.instance.PlayerWin();
+        }
+
         if (GUILayout.Button("Give me!") && !string.IsNullOrEmpty(CardName))
         {
             CardData card = null;
@@ -1880,6 +1995,7 @@ public class Mod : MelonMod
                 var clone = card.Clone();
                 clone.original = card;
                 Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
+                clone.id =(ulong) Object.FindObjectsOfType<CardData>().Count * 10;
                 Campaign.instance.characters._items[0].data.inventory.Save();
             }
             else
