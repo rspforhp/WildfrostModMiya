@@ -50,3 +50,5 @@ D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net
 D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0\Il2CppDeadExtensions.dll
 D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0\Il2CppDeadRandom.dll
 D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0\UnityEngine.LocalizationModule.dll
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0\Unity.Addressables.dll
+D:\MoreSeriousCppProjects\csharp\WildfrostModMiya\WildfrostModMiya\bin\Debug\net6.0\Unity.ResourceManager.dll

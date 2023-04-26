@@ -176,6 +176,7 @@
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CMelonStartScreen_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnhollowerBaseLib_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnhollowerRuntimeLib_002Edll/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnity_002EAddressables_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnity_002ELocalization_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002ECoreModule_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002Edll/@EntryIndexedValue">True</s:Boolean>
@@ -190,4 +191,5 @@
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002EUI_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002EUIElementsModule_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002EUIElementsNativeModule_002Edll/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002EUIModule_002Edll/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnityEngine_002EUIModule_002Edll/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=D_003A_005CMoreSeriousCppProjects_005Ccsharp_005CWildfrostModMiya_005CWildfrostModMiya_005Clib_005CUnity_002EResourceManager_002Edll/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

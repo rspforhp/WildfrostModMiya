@@ -81,8 +81,14 @@
       <Reference Include="UnhollowerRuntimeLib">
         <HintPath>lib\UnhollowerRuntimeLib.dll</HintPath>
       </Reference>
+      <Reference Include="Unity.Addressables">
+        <HintPath>lib\Unity.Addressables.dll</HintPath>
+      </Reference>
       <Reference Include="Unity.Localization">
         <HintPath>lib\Unity.Localization.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.ResourceManager">
+        <HintPath>lib\Unity.ResourceManager.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine">
         <HintPath>lib\UnityEngine.dll</HintPath>
@@ -126,6 +132,9 @@
       <Reference Include="UnityEngine.UIModule">
         <HintPath>lib\UnityEngine.UIModule.dll</HintPath>
       </Reference>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Class1.cs" />
     </ItemGroup>
 
     
