@@ -11,7 +11,6 @@ using MelonLoader.TinyJSON;
 using UnityEngine;
 using UnityEngine.Localization;
 using WildfrostModMiya;
-using Console = Il2Cpp.Console;
 using File = Il2CppSystem.IO.File;
 using IArrayExt = Il2Cpp.IArrayExt;
 using Object = UnityEngine.Object;
@@ -429,11 +428,12 @@ public class CardBuilder
                 break;
             }
         }
+
         data = woodheadCard.Clone();
         data.value = 1;
         data.original = data;
         data.customData ??= new Il2CppSystem.Collections.Generic.Dictionary<string, Il2CppSystem.Object>();
-        data.customData.Add("AddedByCardLoader",null);
+        data.customData.Add("AddedByCardLoader", null);
     }
 
     public CardData data;
@@ -441,7 +441,7 @@ public class CardBuilder
     public CardBuilder SetTitle(string title = "")
     {
         //data.name = title;
-        data.customData.Add("CardLoaderName",title);
+        data.customData.Add("CardLoaderName", title);
         data.titleFallback = title;
         data.forceTitle = title;
         return this;
@@ -1514,18 +1514,20 @@ public class CardBuilder
         Basic,
         Clunk,
         Magic,
-        Tutorial,
+        Tutorial
     }
 
     public enum VanillaPoolsNames
     {
         None,
-        
+
         BasicItemPool,
         BasicUnitPool,
         BasicCharmPool,
 
-        
+        /// <summary>
+        ///     General Pools are shared between all classes, add to pools of any class, once, it doesnt matter which one
+        /// </summary>
         GeneralItemPool,
         GeneralUnitPool,
         GeneralCharmPool,
@@ -1540,38 +1542,43 @@ public class CardBuilder
 
         MagicItemPool,
         MagicUnitPool,
-        MagicCharmPool,
+        MagicCharmPool
     }
 
-    public CardBuilder AddCardToClassAndPool(string className, VanillaPoolsNames poolName, int weight=1,int value=1) =>
-        AddCardToClassAndPool(className, poolName.ToString().Replace("VanillaPoolsNames.", ""),weight, value);
-
-
-    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, VanillaPoolsNames poolName, int weight=1,int value=1) =>
-        AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""),
-            poolName.ToString().Replace("VanillaPoolsNames.", ""),weight, value);
-
-    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, string poolName,int weight=1, int value=1) =>
-        AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""), poolName,weight, value);
-
-    public CardBuilder AddCardToClassAndPool(string className, string poolName,int weight=1, int value=100)
+    public CardBuilder AddCardToClassAndPool(string className, VanillaPoolsNames poolName, int weight = 1,
+        int value = 1)
     {
-        if(!AddressableLoader.groups.ContainsKey("ClassData")) 
+        return AddCardToClassAndPool(className, poolName.ToString().Replace("VanillaPoolsNames.", ""), weight, value);
+    }
+
+
+    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, VanillaPoolsNames poolName, int weight = 1,
+        int value = 1)
+    {
+        return AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""),
+            poolName.ToString().Replace("VanillaPoolsNames.", ""), weight, value);
+    }
+
+    public CardBuilder AddCardToClassAndPool(VanillaClassesNames className, string poolName, int weight = 1,
+        int value = 1)
+    {
+        return AddCardToClassAndPool(className.ToString().Replace("VanillaClassesNames.", ""), poolName, weight, value);
+    }
+
+    public CardBuilder AddCardToClassAndPool(string className, string poolName, int weight = 1, int value = 100)
+    {
+        if (!AddressableLoader.groups.ContainsKey("ClassData"))
             AddressableLoader.ForceLoadGroup("ClassData");
         foreach (var pool in AddressableLoader.groups["ClassData"].lookup[className].Cast<ClassData>().rewardPools)
-        {
-            if (pool.name==poolName)
+            if (pool.name == poolName)
             {
-                for (int i = 0; i < weight; i++)
-                {
-                    pool.list.Add(data);
-
-                }
-               // pool.list.Clear();//DEEBUG
-                Mod.Instance.LoggerInstance.Msg($"Added card {data.title} to pool {poolName} of class {className} {weight} times!");
+                for (var i = 0; i < weight; i++) pool.list.Add(data);
+                // pool.list.Clear();//DEEBUG
+                Mod.Instance.LoggerInstance.Msg(
+                    $"Added card {data.title} to pool {poolName} of class {className} {weight} times!");
                 break;
             }
-        }
+
         data.value = value;
         return this;
     }
@@ -1640,7 +1647,7 @@ public class CardBuilder
 
     public CardBuilder AddTraits(params TraitData[] Traits)
     {
-        if(!AddressableLoader.groups.ContainsKey("TraitData")) 
+        if (!AddressableLoader.groups.ContainsKey("TraitData"))
             AddressableLoader.ForceLoadGroup("TraitData");
 
         var dictionary = AddressableLoader.groups["TraitData"].lookup;
@@ -1732,7 +1739,7 @@ public static class WildFrostAPI
 
     private static IEnumerator AddAllCardsCoroutine(List<CardBuilder> cardBuilders)
     {
-        yield return new WaitUntil((Func<bool>) (() => AddressableLoader.groups.ContainsKey("TraitData")));
+        yield return new WaitUntil((Func<bool>)(() => AddressableLoader.groups.ContainsKey("TraitData")));
         var loc = typeof(Mod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
         var jsonCardsLoc = loc + "JsonCards\\";
         Mod.Instance.LoggerInstance.Msg(JSON.Dump(new Mod.JSONCardData
@@ -1766,8 +1773,7 @@ public static class WildFrostAPI
 
     internal static void AddAllCards(List<CardBuilder> cardBuilders)
     {
-        MelonLoader.MelonCoroutines.Start(AddAllCardsCoroutine(cardBuilders));
-        
+        MelonCoroutines.Start(AddAllCardsCoroutine(cardBuilders));
     }
 }
 
@@ -1785,20 +1791,10 @@ public class Mod : MelonMod
         public CardBuilder.EffectData[] StartWithEffects;
     }
 
-    
-    
-    [HarmonyPatch(typeof(CardManager), nameof(CardManager.Get))]
-    class CardManagerGetPatch
-    {
-        [HarmonyPrefix]
-        static void Prefix(ref CardData data,  CardController controller, Character owner, bool inPlay, Card __result, CardManager __instance)
-        {
-            if (data.customData == null || !data.customData.ContainsKey("CardLoaderName")) return;
-            Mod.Instance.LoggerInstance.Msg(System.ConsoleColor.Blue,$"Hey this shit run! WHY? {data.name} {data.titleFallback} {data.forceTitle}");
-            data.name = "NakedGnome";
-        }
-    }
-    
+
+    #region SaveUnencryptment
+
+#if SAVE_ENCRYPTMENT
     [HarmonyPatch(typeof(SaveSystem), nameof(SaveSystem.ConvertSaveFile))]
     class DONOTWIPESAVES_Part1
     {
@@ -1808,7 +1804,6 @@ public class Mod : MelonMod
             return false;
         }
     }
-
     [HarmonyPatch(typeof(VersionCompatibility.Profile), nameof(VersionCompatibility.Profile.Check))]
     class DONOTWIPESAVES_Part2
     {
@@ -1819,7 +1814,7 @@ public class Mod : MelonMod
         }
     }
 
-    public override void OnFixedUpdate()
+    private void DoUnecryptedSaveLogicUpdate()
     {
         if (SaveSystem.settings is { prettyPrint: false })
         {
@@ -1827,10 +1822,20 @@ public class Mod : MelonMod
             SaveSystem.settings.compressionType = ES3Settings.unencryptedUncompressedSettings.compressionType;
             SaveSystem.settings.prettyPrint = true;
         }
+    }
+#endif
+
+    #endregion
+
+    public override void OnFixedUpdate()
+    {
+#if SAVE_ENCRYPTMENT
+        DoUnecryptedSaveLogicUpdate();
+#endif
         base.OnFixedUpdate();
     }
 
-    
+
     public override void OnInitializeMelon()
     {
         Instance = this;
@@ -1845,9 +1850,8 @@ public class Mod : MelonMod
                 .SetIsItem(true)
                 .AddAttackEffects(new CardBuilder.EffectData("Demonize"))
                 .AddTraits(new CardBuilder.TraitData("Noomlin"))
-                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Basic, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
-                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Clunk, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
-                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Magic, CardBuilder.VanillaPoolsNames.GeneralItemPool,100)
+                .AddCardToClassAndPool(CardBuilder.VanillaClassesNames.Basic,
+                    CardBuilder.VanillaPoolsNames.GeneralItemPool, 100)
             );
 
 
@@ -1865,8 +1869,6 @@ public class Mod : MelonMod
             return list;
         };
     }
-
- 
 
 
     public override void OnUpdate()
@@ -1889,19 +1891,16 @@ public class Mod : MelonMod
     public static CardData debug = new() { forceTitle = "APIADDDED" };
 
     [HarmonyPatch(typeof(LogSystem), nameof(LogSystem.Write))]
-    class WritePatch
+    private class WritePatch
     {
         [HarmonyPostfix]
-        static void Postfix(string str)
+        private static void Postfix(string str)
         {
-            #if logtoconsole
+#if logtoconsole
             Mod.Instance.LoggerInstance.Msg(str);
 #endif
         }
     }
-
-
-
 
 
     [HarmonyPatch(typeof(MetaprogressionSystem), nameof(MetaprogressionSystem.IsUnlocked), typeof(string),
@@ -1960,7 +1959,6 @@ public class Mod : MelonMod
     public Rect _rect = new(0, 0, 175, 300);
     public string CardName;
 
-  
 
     public override void OnGUI()
     {
@@ -1974,10 +1972,7 @@ public class Mod : MelonMod
         GUI.BeginGroup(_rect, "");
         GUILayout.Label("Enter the card name: ");
         CardName = GUILayout.TextField(CardName);
-        if (GUILayout.Button("Try win battle?"))
-        {
-          Battle.instance.PlayerWin();
-        }
+        if (GUILayout.Button("Try win battle?")) Battle.instance.PlayerWin();
 
         if (GUILayout.Button("Give me!") && !string.IsNullOrEmpty(CardName))
         {
@@ -1995,7 +1990,7 @@ public class Mod : MelonMod
                 var clone = card.Clone();
                 clone.original = card;
                 Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
-                clone.id =(ulong) Object.FindObjectsOfType<CardData>().Count * 10;
+                clone.id = (ulong)Object.FindObjectsOfType<CardData>().Count * 10;
                 Campaign.instance.characters._items[0].data.inventory.Save();
             }
             else
