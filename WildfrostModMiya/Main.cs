@@ -27,8 +27,6 @@ public partial class WildFrostAPIMod : MelonMod
     
 
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
-    public static string CardPortraitsFolder = ModsFolder + "CardPortraits\\";
-    public static string JsonCardsFolder = ModsFolder + "JsonCards\\";
     public static WildFrostAPIMod Instance;
 
 
@@ -67,8 +65,9 @@ public partial class WildFrostAPIMod : MelonMod
             CardAdder.CreateCardData("API","DebugCard")
                 .SetTitle("Debug Card")
                 .SetIsItem()
+                //.AddToPool(CardAdder.VanillaRewardPools.BasicItemPool) debug cards shouldn't be in pools
                 .SetCanPlay(CardAdder.CanPlay.CanPlayOnEnemy | CardAdder.CanPlay.CanPlayOnBoard)
-                .SetSprites("testPortrait","testBackground")
+                .SetSprites("CardPortraits\\testPortrait","CardPortraits\\testBackground")
                 .SetDamage(2)
                 .SetBloodProfile(CardAdder.VanillaBloodProfiles.BloodProfilePinkWisp)
                 .SetIdleAnimationProfile(CardAdder.VanillaCardAnimationProfiles.GoopAnimationProfile)
@@ -193,6 +192,10 @@ public partial class WildFrostAPIMod : MelonMod
             CoroutineManager.Start(AddressableLoader.LoadGroup("StatusEffectData"));
             if (!AddressableLoader.IsGroupLoaded("StatusEffectData")) return;
 
+            CoroutineManager.Start(AddressableLoader.LoadGroup("TraitData"));
+            if (!AddressableLoader.IsGroupLoaded("TraitData")) return;
+
+            
             CreateVanillaAnimationProfiles();
             if (VanillaAnimationProfiles.Count == 0) return;
             
@@ -216,12 +219,12 @@ public partial class WildFrostAPIMod : MelonMod
         }
     }
 
+   
     public override void OnInitializeMelon()
     {
         Instance = this;
-        
-    
         AddDebugCards();
+        CardAdder.OnAskForAddingCards +=JSONApi.AddJSONCards;
         LoggerInstance.Msg(Color.Blue, "WildFrost API Loaded!");
         //MelonCoroutines.Start(LoadAssetsTestRoutine());
         base.OnInitializeMelon();

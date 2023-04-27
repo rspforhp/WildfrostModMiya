@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.SmartFormat.PersistentVariables;
+using UniverseLib;
 
 namespace WildfrostModMiya;
 
@@ -28,7 +29,7 @@ public static class CardAdder
     public static Sprite LoadSpriteFromCardPortraits(string name, Vector2? v = null)
     {
         Texture2D tex = new Texture2D(2, 2);
-        tex.LoadImage(File.ReadAllBytes(WildFrostAPIMod.CardPortraitsFolder +
+        tex.LoadImage(File.ReadAllBytes(WildFrostAPIMod.ModsFolder +
                                         (name.EndsWith(".png") ? name : name + ".png")));
         return tex.ToSprite(v);
     }
@@ -1072,35 +1073,36 @@ public static class CardAdder
         VanillaTraitsNamesLookUp =
             new()
             {
-                [VanillaTraits.Aimless]="Aimless",
-                [VanillaTraits.Backline]="Backline",
-                [VanillaTraits.Barrage]="Barrage",
-                [VanillaTraits.Bombard1]="Bombard 1",
-                [VanillaTraits.Bombard2]="Bombard 2",
-                [VanillaTraits.Combo]="Combo",
-                [VanillaTraits.Consume]="Consume",
-                [VanillaTraits.Crush]="Crush",
-                [VanillaTraits.Draw]="Draw",
-                [VanillaTraits.Effigy]="Effigy",
-                [VanillaTraits.Explode]="Explode",
-                [VanillaTraits.Frontline]="Frontline",
-                [VanillaTraits.Fury]="Fury",
-                [VanillaTraits.Greed]="Greed",
-                [VanillaTraits.Hellbent]="Hellbent",
-                [VanillaTraits.Knockback]="Knockback",
-                [VanillaTraits.Longshot]="Longshot",
-                [VanillaTraits.Noomlin]="Noomlin",
-                [VanillaTraits.Pigheaded]="Pigheaded",
-                [VanillaTraits.Pull]="Pull",
-                [VanillaTraits.Recycle]="Recycle",
-                [VanillaTraits.Smackback]="Smackback",
-                [VanillaTraits.Soulbound]="Soulbound",
-                [VanillaTraits.Spark]="Spark",
-                [VanillaTraits.Summoned]="Summoned",
-                [VanillaTraits.Trash]="Trash",
-                [VanillaTraits.Unmovable]="Unmovable",
-                [VanillaTraits.Wild]="Wild",
+                [VanillaTraits.Aimless] = "Aimless",
+                [VanillaTraits.Backline] = "Backline",
+                [VanillaTraits.Barrage] = "Barrage",
+                [VanillaTraits.Bombard1] = "Bombard 1",
+                [VanillaTraits.Bombard2] = "Bombard 2",
+                [VanillaTraits.Combo] = "Combo",
+                [VanillaTraits.Consume] = "Consume",
+                [VanillaTraits.Crush] = "Crush",
+                [VanillaTraits.Draw] = "Draw",
+                [VanillaTraits.Effigy] = "Effigy",
+                [VanillaTraits.Explode] = "Explode",
+                [VanillaTraits.Frontline] = "Frontline",
+                [VanillaTraits.Fury] = "Fury",
+                [VanillaTraits.Greed] = "Greed",
+                [VanillaTraits.Hellbent] = "Hellbent",
+                [VanillaTraits.Knockback] = "Knockback",
+                [VanillaTraits.Longshot] = "Longshot",
+                [VanillaTraits.Noomlin] = "Noomlin",
+                [VanillaTraits.Pigheaded] = "Pigheaded",
+                [VanillaTraits.Pull] = "Pull",
+                [VanillaTraits.Recycle] = "Recycle",
+                [VanillaTraits.Smackback] = "Smackback",
+                [VanillaTraits.Soulbound] = "Soulbound",
+                [VanillaTraits.Spark] = "Spark",
+                [VanillaTraits.Summoned] = "Summoned",
+                [VanillaTraits.Trash] = "Trash",
+                [VanillaTraits.Unmovable] = "Unmovable",
+                [VanillaTraits.Wild] = "Wild",
             };
+
     public static CardData.TraitStacks TraitStack(this VanillaTraits trait, int amount)
     {
         return VanillaTraitsNamesLookUp[trait].TraitStack(amount);
@@ -1114,6 +1116,47 @@ public static class CardAdder
             data = AddressableLoader.groups["TraitData"].lookup[name].Cast<TraitData>(), count = amount
         };
     }
+
+
+
+    public enum VanillaRewardPools
+    {
+        None,
+        BasicItemPool,
+        BasicUnitPool,
+        BasicCharmPool,
+        GeneralItemPool,
+        GeneralUnitPool,
+        GeneralCharmPool,
+        MagicItemPool,
+        MagicUnitPool,
+        MagicCharmPool
+    }
+
+    public static CardData AddToPool(this CardData t, params VanillaRewardPools[] rewardPools)
+    {
+        List<string> names = new();
+        foreach (var p in rewardPools)
+        {
+            names.Add(p.ToString().Replace("VanillaRewardPools.", ""));
+        }
+
+        t = t.AddToPool(names.ToArray());
+        return t;
+    }
+
+    public static CardData AddToPool(this CardData t, params string[] rewardPools)
+    {
+        var allPools = RuntimeHelper.FindObjectsOfTypeAll<RewardPool>();
+        foreach (var poolName in rewardPools)
+        {
+            var pool = allPools.ToList().Find(a => a.name == poolName);
+            pool?.list?.Add(t);
+        }
+
+        return t;
+    }
+
 
 
     public enum VanillaCardAnimationProfiles
@@ -1150,7 +1193,9 @@ public static class CardAdder
     public static CardData SetIdleAnimationProfile(this CardData t, string animationProfileName)
     {
         t.idleAnimationProfile =
-            WildFrostAPIMod.Instance.VanillaAnimationProfiles?.Find(a => a != null && a.name == animationProfileName);
+            WildFrostAPIMod.Instance.VanillaAnimationProfiles?.Find(a => a != null && a.name.Equals(animationProfileName, StringComparison.OrdinalIgnoreCase));
+        if (t.idleAnimationProfile == null)
+            throw new Exception($"Animation profile with name {animationProfileName} not found!");
         return t;
     }
 
@@ -1196,7 +1241,9 @@ public static class CardAdder
     public static CardData SetBloodProfile(this CardData t, string bloodProfileName)
     {
         t.bloodProfile =
-            WildFrostAPIMod.Instance.VanillaBloodProfiles?.Find(a => a != null && a.name == bloodProfileName);
+            WildFrostAPIMod.Instance.VanillaBloodProfiles?.Find(a => a != null && a.name.Equals(bloodProfileName, StringComparison.OrdinalIgnoreCase));
+        if (t.bloodProfile == null)
+            throw new Exception($"Blood profile with name {bloodProfileName} not found!");
         return t;
     }
 
@@ -1236,6 +1283,89 @@ public static class CardAdder
     public static CardData SetStartWithEffects(this CardData t, params CardData.StatusEffectStacks[] effect)
     {
         t.startWithEffects = effect;
+        return t;
+    }
+
+    public enum VanillaCardUpgrades
+    {
+        None,
+        CardUpgradeAcorn,
+        CardUpgradeAttackAndHealth,
+        CardUpgradeAttackConsume,
+        CardUpgradeAttackIncreaseCounter,
+        CardUpgradeAttackRemoveEffects,
+        CardUpgradeBalanced,
+        CardUpgradeBarrage,
+        CardUpgradeBattle,
+        CardUpgradeBling,
+        CardUpgradeBlock,
+        CardUpgradeBom,
+        CardUpgradeBombskull,
+        CardUpgradeBoost,
+        CardUpgradeCake,
+        CardUpgradeCloudberry,
+        CardUpgradeConsume,
+        CardUpgradeConsumeAddHealth,
+        CardUpgradeConsumeOverload,
+        CardUpgradeCritical,
+        CardUpgradeCrush,
+        CardUpgradeDemonize,
+        CardUpgradeDraw,
+        CardUpgradeEffigy,
+        CardUpgradeFrenzyConsume,
+        CardUpgradeFrenzyReduceAttack,
+        CardUpgradeFrosthand,
+        CardUpgradeFury,
+        CardUpgradeGreed,
+        CardUpgradeHeart,
+        CardUpgradeHook,
+        CardUpgradeInk,
+        CardUpgradeNoomlin,
+        CardUpgradeOverload,
+        CardUpgradePig,
+        CardUpgradePunchfist,
+        CardUpgradeRemoveCharmLimit,
+        CardUpgradeScrap,
+        CardUpgradeShellBecomesSpice,
+        CardUpgradeShellOnKill,
+        CardUpgradeShroom,
+        CardUpgradeShroomReduceHealth,
+        CardUpgradeSnowball,
+        CardUpgradeSnowImmune,
+        CardUpgradeSpark,
+        CardUpgradeSpice,
+        CardUpgradeSpiky,
+        CardUpgradeSun,
+        CardUpgradeTeethWhenHit,
+        CardUpgradeTrash,
+        CardUpgradeWeakness,
+        CardUpgradeWildcard,
+        Crown,
+    }
+    public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Generic.List<string> upgrade)
+    {
+        Il2CppSystem.Collections.Generic.List<CardUpgradeData> upgrades =
+            new Il2CppSystem.Collections.Generic.List<CardUpgradeData>();
+        foreach (var u in upgrade)
+        {
+            upgrades.Add( AddressableLoader.groups["CardUpgradeData"].lookup[u].Cast<CardUpgradeData>());
+        }
+        return t;
+    }
+public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Generic.List<VanillaCardUpgrades> upgrade)
+    {
+        Il2CppSystem.Collections.Generic.List<CardUpgradeData> upgrades =
+            new Il2CppSystem.Collections.Generic.List<CardUpgradeData>();
+        foreach (var u in upgrade)
+        {
+            upgrades.Add( AddressableLoader.groups["CardUpgradeData"].lookup[u.ToString().Replace("VanillaCardUpgrades.","")].Cast<CardUpgradeData>());
+        }
+        return t;
+    }
+
+    public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Generic.List<CardUpgradeData> upgrade)
+    {
+        t.upgrades = upgrade;
         return t;
     }
 
@@ -1386,14 +1516,15 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
         newData.createScripts = new Il2CppReferenceArray<CardScript>(0);
         newData = newData.SetTargetMode(VanillaTargetModes.TargetModeBasic);
         newData.name = cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
+        if (modName == "") newData.name = cardName;
         newData.titleFallback = newData.name;
         newData.forceTitle = newData.name;
         newData.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
         {
             return type.name == "Friendly";
         });
-        newData.backgroundSprite =LoadSpriteFromCardPortraits("FALLBACKBACKGROUNDSPRITE.png");
-        newData.mainSprite =LoadSpriteFromCardPortraits("FALLBACKMAINSPRITE.png");
+        newData.backgroundSprite =LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKBACKGROUNDSPRITE.png");
+        newData.mainSprite =LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKMAINSPRITE.png");
         return newData;
     }
     
