@@ -9,7 +9,6 @@ public static class IL2CPPHelpers
             if (p(element))
             {
                 return element;
-                break;
             }
         }
 

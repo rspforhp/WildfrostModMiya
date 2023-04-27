@@ -8,7 +8,10 @@ using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Localization;
 using UnityEngine.Pool;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UniverseLib;
 using WildfrostModMiya;
 using Color = System.Drawing.Color;
 using IEnumerator = System.Collections.IEnumerator;
@@ -21,6 +24,8 @@ namespace WildfrostModMiya;
 
 public partial class WildFrostAPIMod : MelonMod
 {
+    
+
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
     public static string CardPortraitsFolder = ModsFolder + "CardPortraits\\";
     public static string JsonCardsFolder = ModsFolder + "JsonCards\\";
@@ -45,34 +50,77 @@ public partial class WildFrostAPIMod : MelonMod
         }
     }
 
+    public static Il2CppSystem.Collections.Generic.Dictionary<string, string> LocalizationAPI=new  Il2CppSystem.Collections.Generic.Dictionary<string, string>()
+    {
+        ["LOCALTest"]="Translated test"
+    };
+
+
     public static bool ShouldInjectCards;
     internal static  List<CardData> CardDataAdditions=new List<CardData>();
+
 
     public void AddDebugCards()
     {
         CardAdder.OnAskForAddingCards+= delegate(int i)
         {
-            CardAdder.CreateCardData("API","DebugCard").SetName("Custom Name").RegisterCardInApi();
+            CardAdder.CreateCardData("API","DebugCard")
+                .SetTitle("Debug Card")
+                .SetIsItem()
+                .SetCanPlay(CardAdder.CanPlay.CanPlayOnEnemy | CardAdder.CanPlay.CanPlayOnBoard)
+                .SetSprites("testPortrait","testBackground")
+                .SetDamage(2)
+                .SetBloodProfile(CardAdder.VanillaBloodProfiles.BloodProfilePinkWisp)
+                .SetIdleAnimationProfile(CardAdder.VanillaCardAnimationProfiles.GoopAnimationProfile)
+                .SetTraits(CardAdder.VanillaTraits.Barrage.TraitStack(1))
+                .SetStartWithEffects(CardAdder.VanillaStatusEffects.IncreaseEffects.StatusEffectStack(1))
+                .SetAttackEffects(CardAdder.VanillaStatusEffects.Demonize.StatusEffectStack(1))
+                .RegisterCardInApi();
 
         };
     }
-    private bool MatchCardName(Object o)
+    private bool MatchCardName(Object o,string name)
     {
         var card = o.Cast<CardData>();
         LoggerInstance.Warning(card.title);
-        return card.name.Equals(CardName, StringComparison.OrdinalIgnoreCase) || card.title.Equals(CardName, StringComparison.OrdinalIgnoreCase) ||
-               card.forceTitle.Equals(CardName, StringComparison.OrdinalIgnoreCase);
+        return card.name.Equals(name, StringComparison.OrdinalIgnoreCase) || card.title.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+               card.forceTitle.Equals(name, StringComparison.OrdinalIgnoreCase);
     }
     private string CardName;
 
     private void DIRTY_DebugGui()
     {
         CardName = GUILayout.TextField(CardName);
+        
         if (GUILayout.Button("Give me!") && !string.IsNullOrEmpty(CardName))
         {
             CardData card = null;
             foreach (var cardinList in AddressableLoader.groups["CardData"].list)
-                if (MatchCardName(cardinList))
+                if (MatchCardName(cardinList,CardName))
+                {
+                    card = cardinList.Cast<CardData>();
+                    break;
+                }
+
+            if (card != null)
+            {
+                LoggerInstance.Msg("Gave out card " + card.title);
+                var clone = card.Clone();
+                clone.original = card;
+                Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
+                clone.id = (ulong)UnityEngine.Object.FindObjectsOfType<CardData>().Count * 10;
+                Campaign.instance.characters._items[0].data.inventory.Save();
+            }
+            else
+            {
+                LoggerInstance.Msg("No such card!");
+            }
+        }
+        if (GUILayout.Button("Give me debug card!") )
+        {
+            CardData card = null;
+            foreach (var cardinList in AddressableLoader.groups["CardData"].list)
+                if (MatchCardName(cardinList,"API.DebugCard"))
                 {
                     card = cardinList.Cast<CardData>();
                     break;
@@ -100,16 +148,65 @@ public partial class WildFrostAPIMod : MelonMod
         base.OnGUI();
     }
 
+    internal List<CardAnimationProfile> VanillaAnimationProfiles;
+
+    private void CreateVanillaAnimationProfiles()
+    {
+        VanillaAnimationProfiles = new List<CardAnimationProfile>();
+        var list = RuntimeHelper.FindObjectsOfTypeAll<CardAnimationProfile>();
+        foreach (var profile in list)
+        {
+            VanillaAnimationProfiles.Add(profile.Cast<CardAnimationProfile>());
+        }
+    }
+
+    internal List<BloodProfile> VanillaBloodProfiles;
+
+    private void CreateVanillaBloodProfiles()
+    {
+        VanillaBloodProfiles = new List<BloodProfile>();
+        var list = RuntimeHelper.FindObjectsOfTypeAll<BloodProfile>();
+        foreach (var profile in list)
+        {
+            VanillaBloodProfiles.Add(profile.Cast<BloodProfile>());
+        }
+    }
+    
+    internal List<TargetMode> VanillaTargetModes;
+
+    private void CreateVanillaTargetModes()
+    {
+        VanillaTargetModes = new List<TargetMode>();
+        var list = RuntimeHelper.FindObjectsOfTypeAll<TargetMode>();
+        foreach (var profile in list)
+        {
+            VanillaTargetModes.Add(profile.Cast<TargetMode>());
+        }
+    }
+    
     public override void OnUpdate()
     {
         base.OnUpdate();
-        if (ShouldInjectCards&& AddressableLoader.groups.ContainsKey("CardData"))
+        if (
+            ShouldInjectCards&& AddressableLoader.groups.ContainsKey("CardData"))
         {
+            CoroutineManager.Start(AddressableLoader.LoadGroup("StatusEffectData"));
+            if (!AddressableLoader.IsGroupLoaded("StatusEffectData")) return;
+
+            CreateVanillaAnimationProfiles();
+            if (VanillaAnimationProfiles.Count == 0) return;
+            
+            CreateVanillaBloodProfiles();
+            if (VanillaBloodProfiles.Count == 0) return;
+
+            CreateVanillaTargetModes();
+            if (VanillaTargetModes.Count == 0) return;
+            
             CardAdder.LaunchEvent();
             for (int i = 0; i < CardDataAdditions.Count; i++)
             {
                 var c = CardDataAdditions[i];
-                Instance.LoggerInstance.Msg($"Before Card {c.name} is injected by api!");
+                AddressableLoader.groups["CardData"].lookup[c.name]=c;
                 AddressableLoader.groups["CardData"].list.Add(c);
                 Instance.LoggerInstance.Msg($"Card {c.name} is injected by api!");
 
