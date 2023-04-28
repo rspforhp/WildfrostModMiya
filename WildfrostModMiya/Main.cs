@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.Collections;
 using Il2CppSystem.IO;
 using Il2CppSystem.Reflection;
@@ -13,8 +15,10 @@ using UnityEngine.Pool;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UniverseLib;
 using WildfrostModMiya;
+using ClassInjector = Il2CppInterop.Runtime.Injection.ClassInjector;
 using Color = System.Drawing.Color;
 using IEnumerator = System.Collections.IEnumerator;
+using Il2CppType = Il2CppInterop.Runtime.Il2CppType;
 using Object = Il2CppSystem.Object;
 
 [assembly: MelonInfo(typeof(WildFrostAPIMod), "WildFrost API", "1", "Kopie_Miya")]
@@ -81,7 +85,6 @@ public partial class WildFrostAPIMod : MelonMod
     private bool MatchCardName(Object o,string name)
     {
         var card = o.Cast<CardData>();
-        LoggerInstance.Warning(card.title);
         return card.name.Equals(name, StringComparison.OrdinalIgnoreCase) || card.title.Equals(name, StringComparison.OrdinalIgnoreCase) ||
                card.forceTitle.Equals(name, StringComparison.OrdinalIgnoreCase);
     }
@@ -143,7 +146,9 @@ public partial class WildFrostAPIMod : MelonMod
     }
     public override void OnGUI()
     {
+        #if DEBUG
       DIRTY_DebugGui();
+#endif
         base.OnGUI();
     }
 
@@ -152,7 +157,7 @@ public partial class WildFrostAPIMod : MelonMod
     private void CreateVanillaAnimationProfiles()
     {
         VanillaAnimationProfiles = new List<CardAnimationProfile>();
-        var list = RuntimeHelper.FindObjectsOfTypeAll<CardAnimationProfile>();
+        var list = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CardAnimationProfile>());
         foreach (var profile in list)
         {
             VanillaAnimationProfiles.Add(profile.Cast<CardAnimationProfile>());
@@ -164,7 +169,7 @@ public partial class WildFrostAPIMod : MelonMod
     private void CreateVanillaBloodProfiles()
     {
         VanillaBloodProfiles = new List<BloodProfile>();
-        var list = RuntimeHelper.FindObjectsOfTypeAll<BloodProfile>();
+        var list = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<BloodProfile>());
         foreach (var profile in list)
         {
             VanillaBloodProfiles.Add(profile.Cast<BloodProfile>());
@@ -176,7 +181,7 @@ public partial class WildFrostAPIMod : MelonMod
     private void CreateVanillaTargetModes()
     {
         VanillaTargetModes = new List<TargetMode>();
-        var list = RuntimeHelper.FindObjectsOfTypeAll<TargetMode>();
+        var list =UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<TargetMode>());
         foreach (var profile in list)
         {
             VanillaTargetModes.Add(profile.Cast<TargetMode>());
@@ -223,6 +228,12 @@ public partial class WildFrostAPIMod : MelonMod
     public override void OnInitializeMelon()
     {
         Instance = this;
+        
+        ClassInjector.RegisterTypeInIl2Cpp<CardAnimationProfile>();
+        ClassInjector.RegisterTypeInIl2Cpp<BloodProfile>();
+        ClassInjector.RegisterTypeInIl2Cpp<TargetMode>();
+        ClassInjector.RegisterTypeInIl2Cpp<RewardPool>();
+        
         AddDebugCards();
         CardAdder.OnAskForAddingCards +=JSONApi.AddJSONCards;
         LoggerInstance.Msg(Color.Blue, "WildFrost API Loaded!");

@@ -132,8 +132,14 @@
       <Reference Include="UnityEngine.UIModule">
         <HintPath>lib\UnityEngine.UIModule.dll</HintPath>
       </Reference>
+      <Reference Include="UniverseLib.IL2CPP">
+        <HintPath>lib\UniverseLib.IL2CPP.dll</HintPath>
+      </Reference>
       <Reference Include="UniverseLib.IL2CPP.Interop.ML">
         <HintPath>lib\UniverseLib.IL2CPP.Interop.ML.dll</HintPath>
+      </Reference>
+      <Reference Include="UniverseLib.IL2CPP.Unhollower">
+        <HintPath>lib\UniverseLib.IL2CPP.Unhollower.dll</HintPath>
       </Reference>
     </ItemGroup>
     <ItemGroup>

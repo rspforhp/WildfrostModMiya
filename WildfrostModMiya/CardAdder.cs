@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
+using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Collections;
 using MelonLoader;
@@ -1147,10 +1148,10 @@ public static class CardAdder
 
     public static CardData AddToPool(this CardData t, params string[] rewardPools)
     {
-        var allPools = RuntimeHelper.FindObjectsOfTypeAll<RewardPool>();
+        var allPools = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<RewardPool>());
         foreach (var poolName in rewardPools)
         {
-            var pool = allPools.ToList().Find(a => a.name == poolName);
+            var pool = allPools.ToList().Find(a => a.name == poolName).Cast<RewardPool>();
             pool?.list?.Add(t);
         }
 
