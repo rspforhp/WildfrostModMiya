@@ -100,9 +100,9 @@ public partial class WildFrostAPIMod : MelonMod
         };
         CardUpgradeAdder.OnAskForAddingCardUpgrades+= delegate(int i)
         {
-            var data = CardUpgradeAdder.CreateCardUpgradeData("API", "DebugCardUpgrade").SetText("Test description")
-                //TITLE ERRORING
-                .SetTitle("Test charm").AddToPool(CardAdder.VanillaRewardPools.GeneralCharmPool,
+            var data = CardUpgradeAdder.CreateCardUpgradeData("API", "DebugCardUpgrade")
+                .SetAttackEffects(CardAdder.VanillaStatusEffects.Haze.StatusEffectStack(1)).SetText("Gain one <keyword=haze>.")
+                .SetTitle("Haze charm").AddToPool(CardAdder.VanillaRewardPools.GeneralCharmPool,
                     CardAdder.VanillaRewardPools.BasicCharmPool, CardAdder.VanillaRewardPools.MagicCharmPool,
                     CardAdder.VanillaRewardPools.ClunkCharmPool)
                 .SetUpgradeType(CardUpgradeData.Type.Charm)
@@ -266,8 +266,12 @@ public partial class WildFrostAPIMod : MelonMod
                             for (int i = 0; i < StatusEffectDataAdditions.Count; i++)
                             {
                                 var c = StatusEffectDataAdditions[i];
-                                if(!AddressableLoader.groups["StatusEffectData"].lookup.ContainsKey(c.name)) AddressableLoader.groups["StatusEffectData"].list.Add(c);
-                                AddressableLoader.groups["StatusEffectData"].lookup[c.name]=c;
+                                if (!AddressableLoader.groups["StatusEffectData"].lookup.ContainsKey(c.name))
+                                {
+                                    AddressableLoader.groups["StatusEffectData"].list.Add(c);
+                                    AddressableLoader.groups["StatusEffectData"].lookup[c.name]=c;
+
+                                }
                                 Instance.LoggerInstance.Msg($"StatusEffect {c.name} is injected by api!");
                 
                             }
@@ -279,13 +283,9 @@ public partial class WildFrostAPIMod : MelonMod
                                 var c = CardUpgradeDataAdditions[i];
                                 if (!AddressableLoader.groups["CardUpgradeData"].lookup.ContainsKey(c.name))
                                 {
-                                    for (int j = 0; j < 100; j++)
-                                    {
                                         AddressableLoader.groups["CardUpgradeData"].list.Add(c);
-
-                                    }
+                                        AddressableLoader.groups["CardUpgradeData"].lookup[c.name]=c;
                                 }
-                                AddressableLoader.groups["CardUpgradeData"].lookup[c.name]=c;
                                 Instance.LoggerInstance.Msg($"CardUpgradeData {c.name} is injected by api!");
                 
                             }
@@ -297,8 +297,8 @@ public partial class WildFrostAPIMod : MelonMod
                 if (!AddressableLoader.groups["CardData"].lookup.ContainsKey(c.name))
                 {
                     AddressableLoader.groups["CardData"].list.Add(c);
+                    AddressableLoader.groups["CardData"].lookup.Add(c.name,c);
                 }
-                AddressableLoader.groups["CardData"].lookup.Add(c.name,c);
                 Instance.LoggerInstance.Msg($"Card {c.name} is injected by api!");
 
             }

@@ -23,7 +23,7 @@ public static class CardUpgradeAdder
 
     public static CardUpgradeData SetTitle(this CardUpgradeData t, string title) 
     {
-        t.textKey= LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Title",title));
+        t.titleKey= LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Title",title));
         return t;
     }
     public static CardUpgradeData SetUpgradeType(this CardUpgradeData t, CardUpgradeData.Type type)
@@ -36,7 +36,31 @@ public static class CardUpgradeAdder
         t.image = CardAdder.LoadSpriteFromCardPortraits(sprite);
         return t;
     }
-    
+    public static CardUpgradeData SetAttackEffects(this CardUpgradeData t, params CardData.StatusEffectStacks[] effect)
+    {
+        t.attackEffects = effect;
+        return t;
+    }
+    public static CardUpgradeData SetStartWithEffects(this CardUpgradeData t, params CardData.StatusEffectStacks[] effect)
+    {
+        t.startWithEffectsApplied = new Il2CppSystem.Collections.Generic.List<CardData.StatusEffectStacks>();
+        foreach (var e in effect)
+        {
+            t.startWithEffectsApplied.Add(e);
+        }
+        return t;
+    }
+
+    public static CardUpgradeData SetTraits(this CardUpgradeData t,  params CardData.TraitStacks[] traits)
+    {
+        var list = new Il2CppSystem.Collections.Generic.List<CardData.TraitStacks>();
+        foreach (var trait in traits)
+        {
+            list.Add(trait);
+        }
+        t.traitsAffected = list;
+        return t;
+    }
     public static CardUpgradeData RegisterCardUpgradeData(this CardUpgradeData t) 
     {
         WildFrostAPIMod.CardUpgradeDataAdditions.Add(t);

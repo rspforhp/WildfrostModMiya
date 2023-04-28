@@ -33,6 +33,7 @@ public static class CardAdder
         Texture2D tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(WildFrostAPIMod.ModsFolder +
                                         (name.EndsWith(".png") ? name : name + ".png")));
+        
         return tex.ToSprite(v);
     }
 
