@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.SmartFormat.PersistentVariables;
+using UnityEngine.Localization.Tables;
 using UniverseLib;
 
 namespace WildfrostModMiya;
@@ -42,6 +43,11 @@ public static class CardAdder
         t.SetCustomData("AddedByApi", true);
         t.original = t;
         WildFrostAPIMod.CardDataAdditions.Add(t);
+        return t;
+    }
+    public static CardData ModifyFields(this CardData t, Func<CardData,CardData> modifyFields) 
+    {
+        t = modifyFields(t);
         return t;
     }
 
@@ -1022,12 +1028,20 @@ public static class CardAdder
         t.backgroundSprite = backgroundSprite;
         return t;
     }
+    
+    public static StatusEffectData StatusEffectData(this VanillaStatusEffects effect)
+    {
+        return VanillaStatusEffectsNamesLookUp[effect].StatusEffectData();
+    }
 
     public static CardData.StatusEffectStacks StatusEffectStack(this VanillaStatusEffects effect, int amount)
     {
         return VanillaStatusEffectsNamesLookUp[effect].StatusEffectStack(amount);
     }
-
+    public static StatusEffectData StatusEffectData(this string name)
+    {
+        return AddressableLoader.groups["StatusEffectData"].lookup[name].Cast<StatusEffectData>();
+    }
 
     public static CardData.StatusEffectStacks StatusEffectStack(this string name, int amount)
     {
@@ -1131,7 +1145,10 @@ public static class CardAdder
         GeneralCharmPool,
         MagicItemPool,
         MagicUnitPool,
-        MagicCharmPool
+        MagicCharmPool,
+        ClunkItemPool,
+        ClunkUnitPool,
+        ClunkCharmPool
     }
 
     public static CardData AddToPool(this CardData t, params VanillaRewardPools[] rewardPools)
@@ -1500,8 +1517,17 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
     }
     public static CardData SetTitle(this CardData t,string name)
     {
-        t.titleFallback=name ;
-        t.forceTitle = name;
+        t.titleKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Title", name));
+        return t;
+    }
+    public static CardData SetText(this CardData t,string text)
+    {
+        t.textKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Text", text));
+        return t;
+    }
+    public static CardData SetFlavour(this CardData t,string flavour)
+    {
+        t.flavourKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Flavour", flavour));
         return t;
     }
 
@@ -1511,15 +1537,15 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
         newData.titleKey = new LocalizedString();
         newData.flavourKey = new LocalizedString();
         newData.textKey = new LocalizedString();
-
+        newData.injuries = new Il2CppSystem.Collections.Generic.List<CardData.StatusEffectStacks>();
         newData.upgrades = new Il2CppSystem.Collections.Generic.List<CardUpgradeData>();
+        newData.attackEffects = new Il2CppReferenceArray<CardData.StatusEffectStacks>(0);
+        newData.startWithEffects = new Il2CppReferenceArray<CardData.StatusEffectStacks>(0);
         newData.traits = new Il2CppSystem.Collections.Generic.List<CardData.TraitStacks>();
         newData.createScripts = new Il2CppReferenceArray<CardScript>(0);
         newData = newData.SetTargetMode(VanillaTargetModes.TargetModeBasic);
         newData.name = cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
         if (modName == "") newData.name = cardName;
-        newData.titleFallback = newData.name;
-        newData.forceTitle = newData.name;
         newData.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
         {
             return type.name == "Friendly";

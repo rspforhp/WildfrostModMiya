@@ -11,17 +11,20 @@ using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+using UnityEngine.Localization.Tables;
 using UnityEngine.Pool;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UniverseLib;
 using WildfrostModMiya;
 using ClassInjector = Il2CppInterop.Runtime.Injection.ClassInjector;
 using Color = System.Drawing.Color;
+using Console = Il2Cpp.Console;
 using IEnumerator = System.Collections.IEnumerator;
 using Il2CppType = Il2CppInterop.Runtime.Il2CppType;
 using Object = Il2CppSystem.Object;
 
-[assembly: MelonInfo(typeof(WildFrostAPIMod), "WildFrost API", "1", "Kopie_Miya")]
+[assembly: MelonInfo(typeof(WildFrostAPIMod), "WildFrost API", "1.1", "Kopie_Miya")]
 [assembly: MelonGame("Deadpan Games", "Wildfrost")]
 
 namespace WildfrostModMiya;
@@ -60,64 +63,79 @@ public partial class WildFrostAPIMod : MelonMod
 
     public static bool ShouldInjectCards;
     internal static  List<CardData> CardDataAdditions=new List<CardData>();
+    internal static  List<StatusEffectData> StatusEffectDataAdditions=new List<StatusEffectData>();
+    internal static  List<CardUpgradeData> CardUpgradeDataAdditions=new List<CardUpgradeData>();
 
 
-    public void AddDebugCards()
+ 
+    public void AddDebugStuff()
     {
         CardAdder.OnAskForAddingCards+= delegate(int i)
         {
             CardAdder.CreateCardData("API","DebugCard")
                 .SetTitle("Debug Card")
-                .SetIsItem()
+                .SetIsUnit()
                 //.AddToPool(CardAdder.VanillaRewardPools.BasicItemPool) debug cards shouldn't be in pools
                 .SetCanPlay(CardAdder.CanPlay.CanPlayOnEnemy | CardAdder.CanPlay.CanPlayOnBoard)
                 .SetSprites("CardPortraits\\testPortrait","CardPortraits\\testBackground")
-                .SetDamage(2)
+                .SetStats(4,1,3)
                 .SetBloodProfile(CardAdder.VanillaBloodProfiles.BloodProfilePinkWisp)
                 .SetIdleAnimationProfile(CardAdder.VanillaCardAnimationProfiles.GoopAnimationProfile)
-                .SetTraits(CardAdder.VanillaTraits.Barrage.TraitStack(1))
-                .SetStartWithEffects(CardAdder.VanillaStatusEffects.IncreaseEffects.StatusEffectStack(1))
-                .SetAttackEffects(CardAdder.VanillaStatusEffects.Demonize.StatusEffectStack(1))
+                .SetStartWithEffects("API.DebugEffect".StatusEffectStack(1))
                 .RegisterCardInApi();
 
+        };
+        StatusEffectAdder.OnAskForAddingStatusEffects+= delegate(int i)
+        {
+            StatusEffectAdder.CreateStatusEffectData<StatusEffectApplyXWhenHit>("API", "DebugEffect").ModifyFields(
+                delegate(StatusEffectApplyXWhenHit data)
+                {
+                    data.effectToApply = CardAdder.VanillaStatusEffects.Demonize.StatusEffectData();
+                    data=data.SetText("Apply {0} to front enemy when hit");
+                        data.applyToFlags =  StatusEffectApplyX.ApplyToFlags.FrontEnemy;
+                    data.textInsert = "<{a}><keyword=demonize>";
+                    return data;
+                }).RegisterStatusEffectInApi<StatusEffectApplyXWhenHit>();
+            
+        };
+        CardUpgradeAdder.OnAskForAddingCardUpgrades+= delegate(int i)
+        {
+            var data = CardUpgradeAdder.CreateCardUpgradeData("API", "DebugCardUpgrade").SetText("Test description")
+                //TITLE ERRORING
+                .SetTitle("Test charm").AddToPool(CardAdder.VanillaRewardPools.GeneralCharmPool,
+                    CardAdder.VanillaRewardPools.BasicCharmPool, CardAdder.VanillaRewardPools.MagicCharmPool,
+                    CardAdder.VanillaRewardPools.ClunkCharmPool)
+                .SetUpgradeType(CardUpgradeData.Type.Charm)
+                .SetImage("CardPortraits\\CharmTemplate");
+          
+               data.RegisterCardUpgradeData();
         };
     }
     private bool MatchCardName(Object o,string name)
     {
         var card = o.Cast<CardData>();
-        return card.name.Equals(name, StringComparison.OrdinalIgnoreCase) || card.title.Equals(name, StringComparison.OrdinalIgnoreCase) ||
-               card.forceTitle.Equals(name, StringComparison.OrdinalIgnoreCase);
+        return card.name.Equals(name, StringComparison.OrdinalIgnoreCase) || card.title.Equals(name, StringComparison.OrdinalIgnoreCase);
     }
-    private string CardName;
+
+    private IEnumerator DIRTY_ConsoleStuff()
+    {
+        yield return new WaitUntil((Func<bool>)(() => SceneManager.IsLoaded("Console")));
+        var go=UnityEngine.Object.FindObjectOfType<Console>();
+        go?.Toggle();
+        
+    }
 
     private void DIRTY_DebugGui()
     {
-        CardName = GUILayout.TextField(CardName);
-        
-        if (GUILayout.Button("Give me!") && !string.IsNullOrEmpty(CardName))
+        if (GUILayout.Button("Try open console?"))
         {
-            CardData card = null;
-            foreach (var cardinList in AddressableLoader.groups["CardData"].list)
-                if (MatchCardName(cardinList,CardName))
-                {
-                    card = cardinList.Cast<CardData>();
-                    break;
-                }
-
-            if (card != null)
-            {
-                LoggerInstance.Msg("Gave out card " + card.title);
-                var clone = card.Clone();
-                clone.original = card;
-                Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
-                clone.id = (ulong)UnityEngine.Object.FindObjectsOfType<CardData>().Count * 10;
-                Campaign.instance.characters._items[0].data.inventory.Save();
-            }
-            else
-            {
-                LoggerInstance.Msg("No such card!");
-            }
+            if(! SceneManager.IsLoaded("Console"))
+            CoroutineManager.Start(SceneManager.Load("Console", SceneType.Persistent));
+            MelonCoroutines.Start(DIRTY_ConsoleStuff());
         }
+
+        
+        if (GUILayout.Button("Try win battle?")) Battle.instance.PlayerWin();
         if (GUILayout.Button("Give me debug card!") )
         {
             CardData card = null;
@@ -187,6 +205,27 @@ public partial class WildFrostAPIMod : MelonMod
             VanillaTargetModes.Add(profile.Cast<TargetMode>());
         }
     }
+
+
+
+    [HarmonyPatch(typeof(JournalCardManager), nameof(JournalCardManager.LoadCardData))]
+    class LoadCardDataPatch
+    {
+        [HarmonyPostfix]
+        static void Postfix(JournalCardManager.Category category,JournalCardManager __instance,ref Il2CppSystem.Collections.Generic.List< Il2CppSystem.Collections.Generic.KeyValuePair<string,CardData>> __result)
+        {
+            foreach (var data in CardDataAdditions)
+            {
+                if (data.cardType == category.cards[0].Asset.Cast<CardData>().cardType)
+                {
+                    __result.Add(new  Il2CppSystem.Collections.Generic.KeyValuePair<string,CardData>(
+                        data.title,data
+                    ));
+                    __instance.discovered.Add(data.name);
+                }
+            }
+        }
+    }
     
     public override void OnUpdate()
     {
@@ -194,11 +233,22 @@ public partial class WildFrostAPIMod : MelonMod
         if (
             ShouldInjectCards&& AddressableLoader.groups.ContainsKey("CardData"))
         {
-            CoroutineManager.Start(AddressableLoader.LoadGroup("StatusEffectData"));
-            if (!AddressableLoader.IsGroupLoaded("StatusEffectData")) return;
+            if (!AddressableLoader.IsGroupLoaded("StatusEffectData"))
+            {
+                CoroutineManager.Start(AddressableLoader.LoadGroup("StatusEffectData"));
+                return;
+            }
+            if (!AddressableLoader.IsGroupLoaded("CardUpgradeData"))
+            {
+                CoroutineManager.Start(AddressableLoader.LoadGroup("CardUpgradeData"));
+                return;
+            }
+            if (!AddressableLoader.IsGroupLoaded("TraitData"))
+            {
+                CoroutineManager.Start(AddressableLoader.LoadGroup("TraitData"));
+                return;
+            }
 
-            CoroutineManager.Start(AddressableLoader.LoadGroup("TraitData"));
-            if (!AddressableLoader.IsGroupLoaded("TraitData")) return;
 
             
             CreateVanillaAnimationProfiles();
@@ -210,15 +260,51 @@ public partial class WildFrostAPIMod : MelonMod
             CreateVanillaTargetModes();
             if (VanillaTargetModes.Count == 0) return;
             
+            StatusEffectDataAdditions = new ();
+         
+                     StatusEffectAdder.LaunchEvent();
+                            for (int i = 0; i < StatusEffectDataAdditions.Count; i++)
+                            {
+                                var c = StatusEffectDataAdditions[i];
+                                if(!AddressableLoader.groups["StatusEffectData"].lookup.ContainsKey(c.name)) AddressableLoader.groups["StatusEffectData"].list.Add(c);
+                                AddressableLoader.groups["StatusEffectData"].lookup[c.name]=c;
+                                Instance.LoggerInstance.Msg($"StatusEffect {c.name} is injected by api!");
+                
+                            }
+
+                            CardUpgradeDataAdditions = new List<CardUpgradeData>();
+                            CardUpgradeAdder.LaunchEvent();
+                            for (int i = 0; i < CardUpgradeDataAdditions.Count; i++)
+                            {
+                                var c = CardUpgradeDataAdditions[i];
+                                if (!AddressableLoader.groups["CardUpgradeData"].lookup.ContainsKey(c.name))
+                                {
+                                    for (int j = 0; j < 100; j++)
+                                    {
+                                        AddressableLoader.groups["CardUpgradeData"].list.Add(c);
+
+                                    }
+                                }
+                                AddressableLoader.groups["CardUpgradeData"].lookup[c.name]=c;
+                                Instance.LoggerInstance.Msg($"CardUpgradeData {c.name} is injected by api!");
+                
+                            }
+            CardDataAdditions = new List<CardData>();
             CardAdder.LaunchEvent();
             for (int i = 0; i < CardDataAdditions.Count; i++)
             {
                 var c = CardDataAdditions[i];
-                AddressableLoader.groups["CardData"].lookup[c.name]=c;
-                AddressableLoader.groups["CardData"].list.Add(c);
+                if (!AddressableLoader.groups["CardData"].lookup.ContainsKey(c.name))
+                {
+                    AddressableLoader.groups["CardData"].list.Add(c);
+                }
+                AddressableLoader.groups["CardData"].lookup.Add(c.name,c);
                 Instance.LoggerInstance.Msg($"Card {c.name} is injected by api!");
 
             }
+            
+            
+        
 
             ShouldInjectCards = false;
         }
@@ -234,10 +320,11 @@ public partial class WildFrostAPIMod : MelonMod
         ClassInjector.RegisterTypeInIl2Cpp<TargetMode>();
         ClassInjector.RegisterTypeInIl2Cpp<RewardPool>();
         
-        AddDebugCards();
+        AddDebugStuff();
         CardAdder.OnAskForAddingCards +=JSONApi.AddJSONCards;
         LoggerInstance.Msg(Color.Blue, "WildFrost API Loaded!");
         //MelonCoroutines.Start(LoadAssetsTestRoutine());
+
         base.OnInitializeMelon();
     }
 }
