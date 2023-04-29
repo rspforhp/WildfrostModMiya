@@ -10,6 +10,7 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.SmartFormat.PersistentVariables;
 using UnityEngine.Localization.Tables;
 using UniverseLib;
+using String = Il2CppSystem.String;
 
 namespace WildfrostModMiya;
 
@@ -33,10 +34,9 @@ public static class CardAdder
         Texture2D tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(WildFrostAPIMod.ModsFolder +
                                         (name.EndsWith(".png") ? name : name + ".png")));
-        
+
         return tex.ToSprite(v);
     }
-
 
 
     public static CardData RegisterCardInApi(this CardData t)
@@ -46,7 +46,8 @@ public static class CardAdder
         WildFrostAPIMod.CardDataAdditions.Add(t);
         return t;
     }
-    public static CardData ModifyFields(this CardData t, Func<CardData,CardData> modifyFields) 
+
+    public static CardData ModifyFields(this CardData t, Func<CardData, CardData> modifyFields)
     {
         t = modifyFields(t);
         return t;
@@ -1029,7 +1030,7 @@ public static class CardAdder
         t.backgroundSprite = backgroundSprite;
         return t;
     }
-    
+
     public static StatusEffectData StatusEffectData(this VanillaStatusEffects effect)
     {
         return VanillaStatusEffectsNamesLookUp[effect].StatusEffectData();
@@ -1039,6 +1040,7 @@ public static class CardAdder
     {
         return VanillaStatusEffectsNamesLookUp[effect].StatusEffectStack(amount);
     }
+
     public static StatusEffectData StatusEffectData(this string name)
     {
         return AddressableLoader.groups["StatusEffectData"].lookup[name].Cast<StatusEffectData>();
@@ -1134,7 +1136,6 @@ public static class CardAdder
     }
 
 
-
     public enum VanillaRewardPools
     {
         None,
@@ -1177,7 +1178,6 @@ public static class CardAdder
     }
 
 
-
     public enum VanillaCardAnimationProfiles
     {
         None,
@@ -1194,8 +1194,6 @@ public static class CardAdder
         SquishAnimationProfile,
         SwayAnimationProfile,
         GoopAnimationProfile,
-
-
     }
 
     public static CardData SetIdleAnimationProfile(this CardData t, VanillaCardAnimationProfiles profile)
@@ -1212,7 +1210,8 @@ public static class CardAdder
     public static CardData SetIdleAnimationProfile(this CardData t, string animationProfileName)
     {
         t.idleAnimationProfile =
-            WildFrostAPIMod.Instance.VanillaAnimationProfiles?.Find(a => a != null && a.name.Equals(animationProfileName, StringComparison.OrdinalIgnoreCase));
+            WildFrostAPIMod.Instance.VanillaAnimationProfiles?.Find(a =>
+                a != null && a.name.Equals(animationProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.idleAnimationProfile == null)
             throw new Exception($"Animation profile with name {animationProfileName} not found!");
         return t;
@@ -1243,7 +1242,6 @@ public static class CardAdder
                 [VanillaBloodProfiles.BloodProfileSnow] = "Blood Profile Snow",
                 [VanillaBloodProfiles.BloodProfilePinkWisp] = "Blood Profile Pink Wisp",
                 [VanillaBloodProfiles.BloodProfileHusk] = "Blood Profile Husk",
-
             };
 
     public static CardData SetBloodProfile(this CardData t, VanillaBloodProfiles bloodProfile)
@@ -1260,7 +1258,8 @@ public static class CardAdder
     public static CardData SetBloodProfile(this CardData t, string bloodProfileName)
     {
         t.bloodProfile =
-            WildFrostAPIMod.Instance.VanillaBloodProfiles?.Find(a => a != null && a.name.Equals(bloodProfileName, StringComparison.OrdinalIgnoreCase));
+            WildFrostAPIMod.Instance.VanillaBloodProfiles?.Find(a =>
+                a != null && a.name.Equals(bloodProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.bloodProfile == null)
             throw new Exception($"Blood profile with name {bloodProfileName} not found!");
         return t;
@@ -1277,7 +1276,6 @@ public static class CardAdder
         TargetModeRandom,
         TargetModeRow,
         TargetModeCrowns,
-
     }
 
     public static CardData SetTargetMode(this CardData t, VanillaTargetModes vanillaTargetMode)
@@ -1298,6 +1296,39 @@ public static class CardAdder
         return t;
     }
 
+    public static Il2CppSystem.Collections.Generic.List<T> Dictinct<T>(
+        this Il2CppSystem.Collections.Generic.List<T> list)
+    {
+        Il2CppSystem.Collections.Generic.List<T> distinctNames = new Il2CppSystem.Collections.Generic.List<T>();
+        foreach (var name in list)
+        {
+            if (!distinctNames.Contains(name))
+            {
+                distinctNames.Add(name);
+            }
+        }
+
+        return distinctNames;
+    }
+
+    public static CardData AddToPets(this CardData t)
+    {
+        var unlocks = SaveSystem.LoadProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks",
+            new Il2CppSystem.Collections.Generic.List<string>());
+        unlocks.Add(t.name);
+        SaveSystem.SaveProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks", unlocks.Dictinct());
+        var pets = MetaprogressionSystem.data["pets"].Cast<Il2CppStringArray>().ToList();
+        pets.Add(t.name);
+        MetaprogressionSystem.data["pets"] = pets.Dictinct().ToArray().Cast<Il2CppSystem.Object>();
+        var selectStartingPet = UnityEngine.Object.FindObjectOfType<SelectStartingPet>();
+        if (selectStartingPet != null)
+        {
+            selectStartingPet.group.Clear();
+            CoroutineManager.Start(selectStartingPet.SetUp());
+        }
+
+        return t;
+    }
 
     public static CardData SetStartWithEffects(this CardData t, params CardData.StatusEffectStacks[] effect)
     {
@@ -1361,24 +1392,30 @@ public static class CardAdder
         CardUpgradeWildcard,
         Crown,
     }
+
     public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Generic.List<string> upgrade)
     {
         Il2CppSystem.Collections.Generic.List<CardUpgradeData> upgrades =
             new Il2CppSystem.Collections.Generic.List<CardUpgradeData>();
         foreach (var u in upgrade)
         {
-            upgrades.Add( AddressableLoader.groups["CardUpgradeData"].lookup[u].Cast<CardUpgradeData>());
+            upgrades.Add(AddressableLoader.groups["CardUpgradeData"].lookup[u].Cast<CardUpgradeData>());
         }
+
         return t;
     }
-public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Generic.List<VanillaCardUpgrades> upgrade)
+
+    public static CardData SetUpgrades(this CardData t,
+        Il2CppSystem.Collections.Generic.List<VanillaCardUpgrades> upgrade)
     {
         Il2CppSystem.Collections.Generic.List<CardUpgradeData> upgrades =
             new Il2CppSystem.Collections.Generic.List<CardUpgradeData>();
         foreach (var u in upgrade)
         {
-            upgrades.Add( AddressableLoader.groups["CardUpgradeData"].lookup[u.ToString().Replace("VanillaCardUpgrades.","")].Cast<CardUpgradeData>());
+            upgrades.Add(AddressableLoader.groups["CardUpgradeData"]
+                .lookup[u.ToString().Replace("VanillaCardUpgrades.", "")].Cast<CardUpgradeData>());
         }
+
         return t;
     }
 
@@ -1394,13 +1431,14 @@ public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Gen
         return t;
     }
 
-    public static CardData SetTraits(this CardData t,  params CardData.TraitStacks[] traits)
+    public static CardData SetTraits(this CardData t, params CardData.TraitStacks[] traits)
     {
         var list = new Il2CppSystem.Collections.Generic.List<CardData.TraitStacks>();
         foreach (var trait in traits)
         {
             list.Add(trait);
         }
+
         t.traits = list;
         return t;
     }
@@ -1467,21 +1505,21 @@ public static CardData SetUpgrades(this CardData t, Il2CppSystem.Collections.Gen
         Summoned,
     }
 
-public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
+    public static CardData SetCardType(this CardData t, VanillaCardTypes cardType)
     {
-        t.cardType=AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
+        t.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
         {
-            return type.name == cardType.ToString().Replace("VanillaCardTypes.","");
-        }); 
+            return type.name == cardType.ToString().Replace("VanillaCardTypes.", "");
+        });
         return t;
     }
 
-    public static CardData SetCardType(this CardData t,string cardTypeName)
+    public static CardData SetCardType(this CardData t, string cardTypeName)
     {
-        t.cardType=AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
+        t.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
         {
             return type.name == cardTypeName;
-        }); 
+        });
         return t;
     }
 
@@ -1489,11 +1527,12 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
     public enum CanPlay
     {
         None,
-        CanPlayOnBoard=0b1,
-        CanPlayOnEnemy=0b10,
-        CanPlayOnFriendly=0b100,
-        CanPlayOnHand=0b1000,
+        CanPlayOnBoard = 0b1,
+        CanPlayOnEnemy = 0b10,
+        CanPlayOnFriendly = 0b100,
+        CanPlayOnHand = 0b1000,
     }
+
     public static CardData SetCanPlay(this CardData t, CanPlay canPlayFlags)
     {
         t.canPlayOnBoard = canPlayFlags.HasFlag(CanPlay.CanPlayOnBoard);
@@ -1502,6 +1541,7 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
         t.canPlayOnHand = canPlayFlags.HasFlag(CanPlay.CanPlayOnHand);
         return t;
     }
+
     public static CardData SetItemUses(this CardData t, int amount)
     {
         t.uses = amount;
@@ -1516,23 +1556,27 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
         t = t.SetCardType(VanillaCardTypes.Item);
         return t;
     }
-    public static CardData SetTitle(this CardData t,string name)
+
+    public static CardData SetTitle(this CardData t, string name)
     {
-        t.titleKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Title", name));
-        return t;
-    }
-    public static CardData SetText(this CardData t,string text)
-    {
-        t.textKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Text", text));
-        return t;
-    }
-    public static CardData SetFlavour(this CardData t,string flavour)
-    {
-        t.flavourKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name+".Flavour", flavour));
+        t.titleKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name + ".Title", name));
         return t;
     }
 
-    public static CardData CreateCardData(string modName,string cardName)
+    public static CardData SetText(this CardData t, string text)
+    {
+        t.textKey = LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name + ".Text", text));
+        return t;
+    }
+
+    public static CardData SetFlavour(this CardData t, string flavour)
+    {
+        t.flavourKey =
+            LocalizationHelper.FromId(LocalizationHelper.CreateLocalizedString(t.name + ".Flavour", flavour));
+        return t;
+    }
+
+    public static CardData CreateCardData(string modName, string cardName)
     {
         var newData = ScriptableObject.CreateInstance<CardData>();
         newData.titleKey = new LocalizedString();
@@ -1551,9 +1595,8 @@ public static CardData SetCardType(this CardData t,VanillaCardTypes cardType)
         {
             return type.name == "Friendly";
         });
-        newData.backgroundSprite =LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKBACKGROUNDSPRITE.png");
-        newData.mainSprite =LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKMAINSPRITE.png");
+        newData.backgroundSprite = LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKBACKGROUNDSPRITE.png");
+        newData.mainSprite = LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKMAINSPRITE.png");
         return newData;
     }
-    
 }

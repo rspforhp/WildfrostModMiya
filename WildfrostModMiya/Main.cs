@@ -82,6 +82,7 @@ public partial class WildFrostAPIMod : MelonMod
                 .SetBloodProfile(CardAdder.VanillaBloodProfiles.BloodProfilePinkWisp)
                 .SetIdleAnimationProfile(CardAdder.VanillaCardAnimationProfiles.GoopAnimationProfile)
                 .SetStartWithEffects("API.DebugEffect".StatusEffectStack(1))
+                .AddToPets()
                 .RegisterCardInApi();
 
         };
@@ -309,6 +310,7 @@ public partial class WildFrostAPIMod : MelonMod
             ShouldInjectCards = false;
         }
     }
+
 
    
     public override void OnInitializeMelon()
