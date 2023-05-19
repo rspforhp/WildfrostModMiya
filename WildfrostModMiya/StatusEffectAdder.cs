@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Localization;
 
 namespace WildfrostModMiya;

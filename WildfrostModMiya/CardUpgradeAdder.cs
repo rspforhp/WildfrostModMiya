@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using Il2CppInterop.Runtime;
+﻿using Il2CppInterop.Runtime;
 using UnityEngine;
 using UnityEngine.Localization;
 

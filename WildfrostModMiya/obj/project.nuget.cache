@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "y3d+PeNABSmSTazu/lfA74xYb0DBd+5mO4Ip4onpFGz60bvFZDmswTdQaKOiRIr/wVPC6KstBW9dhzPyjpJZiA==",
+  "dgSpecHash": "rjToSg6iSdhmswxj/Db1upb9tX1rC0yVKwjJ8yxZuxNOApfpSZuquAD13W9dzVb/C6xKwktZMhmtKsUeO11Fcg==",
   "success": true,
   "projectFilePath": "D:\\MoreSeriousCppProjects\\csharp\\WildfrostModMiya\\WildfrostModMiya\\WildfrostModMiya.csproj",
   "expectedPackageFiles": [
@@ -18,9 +18,9 @@
     "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\system.runtime.extensions\\4.3.0\\system.runtime.extensions.4.3.0.nupkg.sha512",
     "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\system.text.encoding\\4.3.0\\system.text.encoding.4.3.0.nupkg.sha512",
     "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
-    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.11\\microsoft.netcore.app.ref.6.0.11.nupkg.sha512",
-    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.11\\microsoft.windowsdesktop.app.ref.6.0.11.nupkg.sha512",
-    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.11\\microsoft.aspnetcore.app.ref.6.0.11.nupkg.sha512"
+    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.16\\microsoft.netcore.app.ref.6.0.16.nupkg.sha512",
+    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.16\\microsoft.windowsdesktop.app.ref.6.0.16.nupkg.sha512",
+    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.16\\microsoft.aspnetcore.app.ref.6.0.16.nupkg.sha512"
   ],
   "logs": []
 }

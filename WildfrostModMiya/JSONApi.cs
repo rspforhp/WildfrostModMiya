@@ -1,6 +1,5 @@
-﻿using Il2Cpp;
-using MelonLoader.TinyJSON;
-using Object = Il2CppSystem.Object;
+﻿using Object = Il2CppSystem.Object;
+using TinyJson;
 
 namespace WildfrostModMiya;
 
@@ -54,16 +53,15 @@ public static class JSONApi
             debugJsonCard.IsItem = true;
             debugJsonCard.CardType ="Item";
         }
-        var debugJson = JSON.Dump(debugJsonCard, EncodeOptions.PrettyPrint | EncodeOptions.NoTypeHints);
+        var debugJson = debugJsonCard.ToJson();
         File.WriteAllText(WildFrostAPIMod.ModsFolder + "Template.json", debugJson);
         foreach (var jsonFile in Directory.EnumerateFiles(WildFrostAPIMod.ModsFolder, "*.json",
                      SearchOption.AllDirectories))
         {
             if (jsonFile.EndsWith("Template.json")) continue;
             var text = File.ReadAllText(jsonFile);
-            JSONCardData test;
-            JSON.MakeInto(JSON.Load(text), out test);
-            WildFrostAPIMod.Instance.LoggerInstance.Msg(test.name);
+            JSONCardData test=text.FromJson<JSONCardData>();
+            WildFrostAPIMod.Instance.Log.LogInfo(test.name);
 
             var attackEffects = new Il2CppSystem.Collections.Generic.List<CardData.StatusEffectStacks>();
             foreach (var effectData in test.attackEffects)
@@ -74,7 +72,7 @@ public static class JSONApi
                     data = AddressableLoader.groups["StatusEffectData"].lookup[effectData.name]
                         .Cast<StatusEffectData>()
                 };
-                WildFrostAPIMod.Instance.LoggerInstance.Msg(effectData.name + " " + effectData.count +
+                WildFrostAPIMod.Instance.Log.LogInfo(effectData.name + " " + effectData.count +
                                                             " added to json attack effects");
                 attackEffects.Add(data);
             }

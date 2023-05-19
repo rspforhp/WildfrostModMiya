@@ -1,15 +1,12 @@
 ﻿using HarmonyLib;
-using Il2Cpp;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Collections;
-using MelonLoader;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.Localization.SmartFormat.PersistentVariables;
 using UnityEngine.Localization.Tables;
-using UniverseLib;
 using String = Il2CppSystem.String;
 
 namespace WildfrostModMiya;
@@ -1210,7 +1207,7 @@ public static class CardAdder
     public static CardData SetIdleAnimationProfile(this CardData t, string animationProfileName)
     {
         t.idleAnimationProfile =
-            WildFrostAPIMod.Instance.VanillaAnimationProfiles?.Find(a =>
+            WildFrostAPIMod.VanillaAnimationProfiles?.Find(a =>
                 a != null && a.name.Equals(animationProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.idleAnimationProfile == null)
             throw new Exception($"Animation profile with name {animationProfileName} not found!");
@@ -1258,7 +1255,7 @@ public static class CardAdder
     public static CardData SetBloodProfile(this CardData t, string bloodProfileName)
     {
         t.bloodProfile =
-            WildFrostAPIMod.Instance.VanillaBloodProfiles?.Find(a =>
+            WildFrostAPIMod.VanillaBloodProfiles?.Find(a =>
                 a != null && a.name.Equals(bloodProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.bloodProfile == null)
             throw new Exception($"Blood profile with name {bloodProfileName} not found!");
@@ -1292,7 +1289,7 @@ public static class CardAdder
 
     public static CardData SetTargetMode(this CardData t, string targetModeName)
     {
-        t.targetMode = WildFrostAPIMod.Instance.VanillaTargetModes?.Find(a => a != null && a.name == targetModeName);
+        t.targetMode = WildFrostAPIMod.VanillaTargetModes?.Find(a => a != null && a.name == targetModeName);
         return t;
     }
 
