@@ -1575,7 +1575,17 @@ public static class CardAdder
 
     public static CardData CreateCardData(string modName, string cardName)
     {
-        var newData = ScriptableObject.CreateInstance<CardData>();
+        string oldName = cardName;
+        cardName=cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
+        if (modName == "") cardName= oldName;
+        CardData newData = null;
+        var cardWithSameName = AddressableLoader.GetGroup<CardData>("CardData").ToArray().ToList()
+            .Find(c => c.name == cardName);
+        if (cardWithSameName != null)
+        {
+            newData = cardWithSameName;
+        }
+        else  newData = ScriptableObject.CreateInstance<CardData>();
         newData.titleKey = new LocalizedString();
         newData.flavourKey = new LocalizedString();
         newData.textKey = new LocalizedString();
@@ -1586,8 +1596,7 @@ public static class CardAdder
         newData.traits = new Il2CppSystem.Collections.Generic.List<CardData.TraitStacks>();
         newData.createScripts = new Il2CppReferenceArray<CardScript>(0);
         newData = newData.SetTargetMode(VanillaTargetModes.TargetModeBasic);
-        newData.name = cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
-        if (modName == "") newData.name = cardName;
+        newData.name =cardName;
         newData.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
         {
             return type.name == "Friendly";

@@ -12,6 +12,7 @@ using UnityEngine.Localization.Tables;
 using UnityEngine.Pool;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using BepInEx.Unity.IL2CPP.Utils;
 using Cpp2IL.Core.Attributes;
@@ -21,11 +22,12 @@ using Color = System.Drawing.Color;
 using IEnumerator = System.Collections.IEnumerator;
 using Il2CppType = Il2CppInterop.Runtime.Il2CppType;
 using Object = Il2CppSystem.Object;
+using Random = System.Random;
 
 
 namespace WildfrostModMiya;
 
-[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.1.2.0")]
+[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.1.3.1")]
 public class WildFrostAPIMod : BasePlugin
 {
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
@@ -107,41 +109,69 @@ public class WildFrostAPIMod : BasePlugin
         go?.Toggle();
     }
 
+    private static int seed=-1;
+
+    [HarmonyPatch(typeof(CampaignData), nameof(CampaignData.Init))]
+    class Patch
+    {
+        [HarmonyPostfix]
+        static void Postfix(CampaignData __instance)
+        {
+            if (Instance.configSeedManipulation.Value&& seed!=-1)
+            {
+                __instance.Seed = seed;
+            }
+        }
+    }
+
+
     private static void DIRTY_DebugGui()
     {
-        if (GUILayout.Button("Try open console?"))
+        if (Instance.configOpenConsoleButton.Value)
+            if (GUILayout.Button("Try open console?"))
+            {
+                if (!SceneManager.IsLoaded("Console"))
+                    CoroutineManager.Start(SceneManager.Load("Console", SceneType.Persistent));
+                Instance._GameObject.StartCoroutine(DIRTY_ConsoleStuff());
+            }
+
+        if (Instance.configSeedManipulation.Value)
         {
-            if (!SceneManager.IsLoaded("Console"))
-                CoroutineManager.Start(SceneManager.Load("Console", SceneType.Persistent));
-            Instance._GameObject.StartCoroutine(DIRTY_ConsoleStuff());
+            seed = int.Parse(GUILayout.TextField(seed.ToString()));
+            if (GUILayout.Button("Randomize Seed"))
+            {
+                seed = Dead.Random.Seed();
+            }
         }
 
+        if (Instance.configWinBattleButton.Value)
+            if (GUILayout.Button("Try win battle?"))
+                Battle.instance.PlayerWin();
+        if (Instance.configGiveDebugCardButton.Value)
+            if (GUILayout.Button("Give me debug card!"))
+            {
+                CardData card = null;
+                foreach (var cardinList in AddressableLoader.groups["CardData"].list)
+                    if (MatchCardName(cardinList, "API.DebugCard"))
+                    {
+                        card = cardinList.Cast<CardData>();
+                        break;
+                    }
 
-        if (GUILayout.Button("Try win battle?")) Battle.instance.PlayerWin();
-        if (GUILayout.Button("Give me debug card!"))
-        {
-            CardData card = null;
-            foreach (var cardinList in AddressableLoader.groups["CardData"].list)
-                if (MatchCardName(cardinList, "API.DebugCard"))
+                if (card != null)
                 {
-                    card = cardinList.Cast<CardData>();
-                    break;
+                    Instance.Log.LogInfo("Gave out card " + card.title);
+                    var clone = card.Clone();
+                    clone.original = card;
+                    Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
+                    clone.id = (ulong)UnityEngine.Object.FindObjectsOfType<CardData>().Count * 10;
+                    Campaign.instance.characters._items[0].data.inventory.Save();
                 }
-
-            if (card != null)
-            {
-                Instance.Log.LogInfo("Gave out card " + card.title);
-                var clone = card.Clone();
-                clone.original = card;
-                Campaign.instance.characters._items[0].data.inventory.deck.Add(clone);
-                clone.id = (ulong)UnityEngine.Object.FindObjectsOfType<CardData>().Count * 10;
-                Campaign.instance.characters._items[0].data.inventory.Save();
+                else
+                {
+                    Instance.Log.LogInfo("No such card!");
+                }
             }
-            else
-            {
-                Instance.Log.LogInfo("No such card!");
-            }
-        }
     }
 
 
@@ -206,11 +236,9 @@ public class WildFrostAPIMod : BasePlugin
 
     public class APIGameObject : MonoBehaviour
     {
-        public  void OnGUI()
+        public void OnGUI()
         {
-#if DEBUG
             DIRTY_DebugGui();
-#endif
         }
 
         public void Update()
@@ -297,10 +325,36 @@ public class WildFrostAPIMod : BasePlugin
 
     private APIGameObject _GameObject;
 
+
+    private ConfigEntry<bool> configWinBattleButton;
+    private ConfigEntry<bool> configGiveDebugCardButton;
+    private ConfigEntry<bool> configOpenConsoleButton;
+    private ConfigEntry<bool> configSeedManipulation;
+
     public override void Load()
     {
+        configWinBattleButton = Config.Bind("Debug.Toggles",
+            "WinBattleButton",
+            false,
+            "Whether or not to show the \"try win battle?\" button");
+
+        configGiveDebugCardButton = Config.Bind("Debug.Toggles",
+            "GiveDebugCardButton",
+            false,
+            "Whether or not to show the \"give me debug card!\" button");
+        configOpenConsoleButton = Config.Bind("Debug.Toggles",
+            "OpenConsoleButton",
+            false,
+            "Whether or not to show the \"OpenConsole!\" button");
+
+        configSeedManipulation = Config.Bind("Utils.Toggles",
+            "SeedManipulation",
+            true,
+            "Whether or not to show the seed manipulation ui");
+
+
         Instance = this;
-        Harmony.CreateAndPatchAll(System.Reflection.Assembly.GetExecutingAssembly(),"WildFrost.Miya.WildfrostAPI" );
+        Harmony.CreateAndPatchAll(System.Reflection.Assembly.GetExecutingAssembly(), "WildFrost.Miya.WildfrostAPI");
         ClassInjector.RegisterTypeInIl2Cpp<CardAnimationProfile>();
         ClassInjector.RegisterTypeInIl2Cpp<BloodProfile>();
         ClassInjector.RegisterTypeInIl2Cpp<TargetMode>();
@@ -308,7 +362,7 @@ public class WildFrostAPIMod : BasePlugin
         ClassInjector.RegisterTypeInIl2Cpp<APIGameObject>();
         AddDebugStuff();
         CardAdder.OnAskForAddingCards += JSONApi.AddJSONCards;
-        _GameObject=AddComponent<APIGameObject>();
+        _GameObject = AddComponent<APIGameObject>();
         Log.LogInfo("WildFrost API Loaded!");
     }
 }

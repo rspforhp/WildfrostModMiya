@@ -58,7 +58,7 @@ public static class JSONApi
         foreach (var jsonFile in Directory.EnumerateFiles(WildFrostAPIMod.ModsFolder, "*.json",
                      SearchOption.AllDirectories))
         {
-            if (jsonFile.EndsWith("Template.json")) continue;
+            if (jsonFile.EndsWith("Template.json")|| jsonFile.EndsWith("manifest.json")) continue;
             var text = File.ReadAllText(jsonFile);
             JSONCardData test=text.FromJson<JSONCardData>();
             WildFrostAPIMod.Instance.Log.LogInfo(test.name);
