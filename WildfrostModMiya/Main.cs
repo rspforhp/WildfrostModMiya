@@ -16,10 +16,10 @@ using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using BepInEx.Unity.IL2CPP.Utils;
 using Cpp2IL.Core.Attributes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using WildfrostModMiya;
 using ClassInjector = Il2CppInterop.Runtime.Injection.ClassInjector;
 using Color = System.Drawing.Color;
-using IEnumerator = System.Collections.IEnumerator;
 using Il2CppType = Il2CppInterop.Runtime.Il2CppType;
 using Object = Il2CppSystem.Object;
 using Random = System.Random;
@@ -48,6 +48,7 @@ public class WildFrostAPIMod : BasePlugin
 
     public static bool ShouldInjectCards;
     internal static List<CardData> CardDataAdditions = new List<CardData>();
+    internal static List<(BattleData,int)> BattleDataAdditions = new List<(BattleData,int)>();
     internal static List<StatusEffectData> StatusEffectDataAdditions = new List<StatusEffectData>();
     internal static List<CardUpgradeData> CardUpgradeDataAdditions = new List<CardUpgradeData>();
 
@@ -102,7 +103,7 @@ public class WildFrostAPIMod : BasePlugin
                card.title.Equals(name, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static IEnumerator DIRTY_ConsoleStuff()
+    private static System.Collections.IEnumerator DIRTY_ConsoleStuff()
     {
         yield return new WaitUntil((Func<bool>)(() => SceneManager.IsLoaded("Console")));
         var go = UnityEngine.Object.FindObjectOfType<Console>();
@@ -137,10 +138,21 @@ public class WildFrostAPIMod : BasePlugin
 
         if (Instance.configSeedManipulation.Value)
         {
+            var oldSeed = seed;
             seed = int.Parse(GUILayout.TextField(seed.ToString()));
             if (GUILayout.Button("Randomize Seed"))
             {
                 seed = Dead.Random.Seed();
+            }
+
+            if (oldSeed != seed)
+            {
+                var o = UnityEngine.Object.FindObjectOfType<SelectLeader>();
+                if (o != null)
+                {
+                    o.SetSeed(seed);
+                    o.Reroll();
+                }
             }
         }
 
@@ -243,42 +255,46 @@ public class WildFrostAPIMod : BasePlugin
 
         public void Update()
         {
+            this.StartCoroutine(UpdateIE());
+        }
+
+    }
+    
+            public static System.Collections.IEnumerator UpdateIE()
+        {
             if (
                 ShouldInjectCards && AddressableLoader.groups.ContainsKey("CardData"))
             {
                 if (!AddressableLoader.IsGroupLoaded("StatusEffectData"))
                 {
-                    CoroutineManager.Start(AddressableLoader.LoadGroup("StatusEffectData"));
-                    return;
+                    yield return AddressableLoader.LoadGroup("StatusEffectData");
                 }
 
                 if (!AddressableLoader.IsGroupLoaded("CardUpgradeData"))
                 {
-                    CoroutineManager.Start(AddressableLoader.LoadGroup("CardUpgradeData"));
-                    return;
+                    yield return AddressableLoader.LoadGroup("CardUpgradeData");
                 }
 
                 if (!AddressableLoader.IsGroupLoaded("TraitData"))
                 {
-                    CoroutineManager.Start(AddressableLoader.LoadGroup("TraitData"));
-                    return;
+                    yield return AddressableLoader.LoadGroup("TraitData");
                 }
 
 
                 CreateVanillaAnimationProfiles();
-                if (VanillaAnimationProfiles.Count == 0) return;
+                if (VanillaAnimationProfiles.Count == 0)  yield break;
 
                 CreateVanillaBloodProfiles();
-                if (VanillaBloodProfiles.Count == 0) return;
+                if (VanillaBloodProfiles.Count == 0)  yield break;
 
                 CreateVanillaTargetModes();
-                if (VanillaTargetModes.Count == 0) return;
+                if (VanillaTargetModes.Count == 0)  yield break;
 
                 if (StatusEffectDataAdditions != null)
                 {
                     foreach (var oldCard in StatusEffectDataAdditions)
                     {
-                        Destroy(oldCard);
+                        UnityEngine.Object.Destroy(oldCard);
                     }
                 }
                 StatusEffectDataAdditions = new();
@@ -300,7 +316,7 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     foreach (var oldCard in CardUpgradeDataAdditions)
                     {
-                        Destroy(oldCard);
+                        UnityEngine.Object.Destroy(oldCard);
                     }
                 }
                 CardUpgradeDataAdditions = new List<CardUpgradeData>();
@@ -321,7 +337,7 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     foreach (var oldCard in CardDataAdditions)
                     {
-                        Destroy(oldCard);
+                        UnityEngine.Object.Destroy(oldCard);
                     }
                 }
                 CardDataAdditions = new List<CardData>();
@@ -340,9 +356,34 @@ public class WildFrostAPIMod : BasePlugin
 
 
                 ShouldInjectCards = false;
+                
+                yield return new WaitUntil((Func<bool>) (() =>
+                    UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>()).Length>0));
+                var allCampaings = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>());
+                bool Match(Object a)
+                {
+                    var unityObject = a.Cast<CampaignPopulator>();
+                    return unityObject.name == "CampaignPopulatorFull";
+                }
+                foreach (var ca in allCampaings.ToList())
+                {
+                    if (!Match(ca)) continue;
+                    CampaignPopulator fullGen=ca.Cast<CampaignPopulator>();
+                    BattleDataAdditions = new List<(BattleData, int)>();
+                    BattleAdder.LaunchEvent();
+                    foreach (var battleDataAddition in BattleDataAdditions)
+                    {
+                        Instance.Log.LogInfo(battleDataAddition+" "+fullGen);
+                        var battles = fullGen.tiers[battleDataAddition.Item2].battlePool;
+                        battles= battles.AddItem(battleDataAddition.Item1).ToArray();
+                        fullGen.tiers[battleDataAddition.Item2].battlePool = battles;
+                    }
+                }
+               
+                
             }
         }
-    }
+
 
     private APIGameObject _GameObject;
 
@@ -383,6 +424,12 @@ public class WildFrostAPIMod : BasePlugin
         ClassInjector.RegisterTypeInIl2Cpp<APIGameObject>();
         AddDebugStuff();
         CardAdder.OnAskForAddingCards += JSONApi.AddJSONCards;
+        BattleAdder.OnAskForAddingBattles += delegate(int i)
+        {
+            BattleAdder.CreateBattleData("WildfrostAPI", "TestBattle").SetTitle("Custom battle").SetWaves(new []{BattleAdder.CreateWave(new List<List<string>>(){new List<string>(){"API.DebugCard"}})},1).RegisterBattleInApi(0);
+        };
+
+     
         _GameObject = AddComponent<APIGameObject>();
         Log.LogInfo("WildFrost API Loaded!");
     }

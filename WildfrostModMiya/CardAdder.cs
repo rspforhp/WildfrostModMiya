@@ -2,6 +2,7 @@
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Collections;
+using Rewired.Utils;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
@@ -1582,12 +1583,15 @@ public static class CardAdder
 
     public static CardData CreateCardData(string modName, string cardName)
     {
+ 
+
+        
         string oldName = cardName;
         cardName=cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
         if (modName == "") cardName= oldName;
         CardData newData = null;
-        var cardWithSameName = AddressableLoader.GetGroup<CardData>("CardData").ToArray().ToList()
-            .Find(c => c.name == cardName);
+        var cardWithSameName = AddressableLoader.GetGroup<CardData>("CardData")?.ToArray()?.ToList()
+            ?.Find(c =>  !c.IsNullOrDestroyed() &&c.name == cardName);
         if (cardWithSameName != null)
         {
             newData = cardWithSameName;
@@ -1604,10 +1608,8 @@ public static class CardAdder
         newData.createScripts = new Il2CppReferenceArray<CardScript>(0);
         newData = newData.SetTargetMode(VanillaTargetModes.TargetModeBasic);
         newData.name =cardName;
-        newData.cardType = AddressableLoader.GetGroup<CardType>("CardType").Find(delegate(CardType type)
-        {
-            return type.name == "Friendly";
-        });
+        newData.cardType = AddressableLoader.GetGroup<CardType>("CardType")?.Find(type =>
+            !type.IsNullOrDestroyed() && type.name == "Friendly");
         newData.backgroundSprite = LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKBACKGROUNDSPRITE.png");
         newData.mainSprite = LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKMAINSPRITE.png");
         return newData;
