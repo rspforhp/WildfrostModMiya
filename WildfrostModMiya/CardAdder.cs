@@ -1316,6 +1316,13 @@ public static class CardAdder
         SaveSystem.SaveProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks", unlocks.Dictinct());
         var pets = MetaprogressionSystem.data["pets"].Cast<Il2CppStringArray>().ToList();
         pets.Add(t.name);
+        foreach (var pet in pets.ToArray())
+        {
+            if (!AddressableLoader.groups["CardData"].lookup.ContainsKey(pet))
+            {
+                pets.Remove(t.name);
+            }
+        }
         MetaprogressionSystem.data["pets"] = pets.Dictinct().ToArray().Cast<Il2CppSystem.Object>();
         var selectStartingPet = UnityEngine.Object.FindObjectOfType<SelectStartingPet>();
         if (selectStartingPet != null)
