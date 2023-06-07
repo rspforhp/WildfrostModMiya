@@ -498,7 +498,7 @@ public static class CardAdder
         WhileLastInHandDoubleEffectsToSelf
     }
 
-    internal static readonly Dictionary<VanillaStatusEffects, string>
+    public static readonly Dictionary<VanillaStatusEffects, string>
         VanillaStatusEffectsNamesLookUp =
             new()
             {
@@ -1084,7 +1084,7 @@ public static class CardAdder
         Wild,
     }
 
-    internal static readonly Dictionary<VanillaTraits, string>
+    public static readonly Dictionary<VanillaTraits, string>
         VanillaTraitsNamesLookUp =
             new()
             {
@@ -1227,7 +1227,7 @@ public static class CardAdder
         BloodProfileHusk,
     }
 
-    internal static readonly Dictionary<VanillaBloodProfiles, string>
+    public static readonly Dictionary<VanillaBloodProfiles, string>
         VanillaBloodProfilesNamesLookUp =
             new()
             {

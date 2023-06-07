@@ -274,6 +274,13 @@ public class WildFrostAPIMod : BasePlugin
                 CreateVanillaTargetModes();
                 if (VanillaTargetModes.Count == 0) return;
 
+                if (StatusEffectDataAdditions != null)
+                {
+                    foreach (var oldCard in StatusEffectDataAdditions)
+                    {
+                        Destroy(oldCard);
+                    }
+                }
                 StatusEffectDataAdditions = new();
 
                 StatusEffectAdder.LaunchEvent();
@@ -289,6 +296,13 @@ public class WildFrostAPIMod : BasePlugin
                     Instance.Log.LogInfo($"StatusEffect {c.name} is injected by api!");
                 }
 
+                if (CardUpgradeDataAdditions != null)
+                {
+                    foreach (var oldCard in CardUpgradeDataAdditions)
+                    {
+                        Destroy(oldCard);
+                    }
+                }
                 CardUpgradeDataAdditions = new List<CardUpgradeData>();
                 CardUpgradeAdder.LaunchEvent();
                 for (int i = 0; i < CardUpgradeDataAdditions.Count; i++)
@@ -303,6 +317,13 @@ public class WildFrostAPIMod : BasePlugin
                     Instance.Log.LogInfo($"CardUpgradeData {c.name} is injected by api!");
                 }
 
+                if (CardDataAdditions != null)
+                {
+                    foreach (var oldCard in CardDataAdditions)
+                    {
+                        Destroy(oldCard);
+                    }
+                }
                 CardDataAdditions = new List<CardData>();
                 CardAdder.LaunchEvent();
                 for (int i = 0; i < CardDataAdditions.Count; i++)
