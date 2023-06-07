@@ -369,6 +369,11 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     if (!Match(ca)) continue;
                     CampaignPopulator fullGen=ca.Cast<CampaignPopulator>();
+                    if(BattleDataAdditions!=null)
+                    foreach (var old in  BattleDataAdditions )
+                    {
+                        UnityEngine.Object.Destroy(old.Item1);
+                    }
                     BattleDataAdditions = new List<(BattleData, int)>();
                     BattleAdder.LaunchEvent();
                     foreach (var battleDataAddition in BattleDataAdditions)
@@ -424,12 +429,6 @@ public class WildFrostAPIMod : BasePlugin
         ClassInjector.RegisterTypeInIl2Cpp<APIGameObject>();
         AddDebugStuff();
         CardAdder.OnAskForAddingCards += JSONApi.AddJSONCards;
-        BattleAdder.OnAskForAddingBattles += delegate(int i)
-        {
-            BattleAdder.CreateBattleData("WildfrostAPI", "TestBattle").SetTitle("Custom battle").SetWaves(new []{BattleAdder.CreateWave(new List<List<string>>(){new List<string>(){"API.DebugCard"}})},1).RegisterBattleInApi(0);
-        };
-
-     
         _GameObject = AddComponent<APIGameObject>();
         Log.LogInfo("WildFrost API Loaded!");
     }

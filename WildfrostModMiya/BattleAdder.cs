@@ -14,25 +14,17 @@ public static class BattleAdder
         string oldName = battleName;
         battleName=battleName.StartsWith(modName) ? battleName : $"{modName}.{battleName}";
         if (modName == "") battleName= oldName;
-        BattleData newData = ScriptableObject.CreateInstance<BattleData>();
+        BattleData newData = UnityEngine.Object.Instantiate(UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<BattleData>()).ToList().Find(a=>a.name.Contains("Snowbo"))).Cast<BattleData>();
         newData.name = battleName;
         newData.sprite =  CardAdder.LoadSpriteFromCardPortraits("CardPortraits\\FALLBACKBATTLESPRITE.png");
         newData.title = battleName;
-        newData.bonusUnitRange = new Vector2Int();
-        newData.bonusUnitPool = new Il2CppReferenceArray<CardData>(new CardData[0]);
-        newData.generationScript = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<BattleGenerationScriptWaves>()).ToList().Find(a=>a.name=="WaveBattleGenerator").Cast<BattleGenerationScriptWaves>();
-        newData.goldGivers = 0;
-        newData.goldGiverPool = new Il2CppReferenceArray<CardData>(new CardData[0]);
-        newData.pointFactor = 1;
-        newData.pools=new Il2CppReferenceArray<BattleWavePoolData>(new BattleWavePoolData[0]);
-        newData.setUpScript = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<ScriptBattleSetUp>()).ToList().Find(a=>a.name=="BattleSetUp").Cast<ScriptBattleSetUp>();
-        newData.waveCounter = 0;
         return newData;
     }
 
-    public static BattleWavePoolData CreateWave(List<List<string>> waves)
+    public static BattleWavePoolData CreateWave(List<List<string>> waves,string waveName)
     {
         var wave = ScriptableObject.CreateInstance<BattleWavePoolData>();
+        wave.name = waveName;
         wave.maxPulls = 1;
         wave.forcePulls = 1;
         wave.weight = 1;
@@ -46,7 +38,9 @@ public static class BattleAdder
             Il2CppSystem.Collections.Generic.List<CardData> Cards = new ();
             foreach (var card in w)
             {
-                Cards.Add(cards?.Find(c => c.name == card));
+                var c = cards?.Find(c => c.name.Equals(card, StringComparison.OrdinalIgnoreCase));
+                if(c!=null)
+                 Cards.Add(c);
             }
             waveNew.units =Cards;
                 wavesList.Add(waveNew);
