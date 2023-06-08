@@ -52,6 +52,7 @@ public static class JSONApi
             debugJsonCard.CanPlayOnHand = true;
             debugJsonCard.IsItem = true;
             debugJsonCard.CardType ="Item";
+            debugJsonCard.IsPet = false;
         }
         var debugJson = debugJsonCard.ToJson();
         File.WriteAllText(WildFrostAPIMod.ModsFolder + "Template.json", debugJson);
@@ -130,6 +131,7 @@ public static class JSONApi
             if (test.IsItem) card.SetIsItem();
             else card.SetIsUnit();
             card.SetCardType(test.CardType);
+            if (test.IsPet) card.AddToPets();
             card.RegisterCardInApi();
         }
     }
@@ -160,5 +162,6 @@ public static class JSONApi
         public bool CanPlayOnEnemy;
         public bool CanPlayOnFriendly;
         public bool CanPlayOnHand;
+        public bool IsPet;
     }
 }

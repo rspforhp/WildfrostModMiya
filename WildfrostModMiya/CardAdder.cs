@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Collections;
@@ -1294,13 +1295,13 @@ public static class CardAdder
         return t;
     }
 
-    public static Il2CppSystem.Collections.Generic.List<T> Dictinct<T>(
-        this Il2CppSystem.Collections.Generic.List<T> list)
+    public static Il2CppSystem.Collections.Generic.List<string> Dictinct(
+        this Il2CppSystem.Collections.Generic.List<string> list)
     {
-        Il2CppSystem.Collections.Generic.List<T> distinctNames = new Il2CppSystem.Collections.Generic.List<T>();
+        Il2CppSystem.Collections.Generic.List<string> distinctNames = new Il2CppSystem.Collections.Generic.List<string>();
         foreach (var name in list)
         {
-            if (!distinctNames.Contains(name))
+            if (distinctNames.Find(a=>string.Equals(a,name, StringComparison.OrdinalIgnoreCase))==null)
             {
                 distinctNames.Add(name);
             }
@@ -1309,29 +1310,43 @@ public static class CardAdder
         return distinctNames;
     }
 
-    public static CardData AddToPets(this CardData t)
+
+    public static System.Collections.IEnumerator AddToPetsIE( CardData t)
     {
-        var unlocks = SaveSystem.LoadProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks",
-            new Il2CppSystem.Collections.Generic.List<string>());
-        unlocks.Add(t.name);
-        SaveSystem.SaveProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks", unlocks.Dictinct());
+        WildFrostAPIMod.Instance.Log.LogInfo($"Card {t.name} is added to pets!");
+        var allCards = AddressableLoader.groups["CardData"].list;
         var pets = MetaprogressionSystem.data["pets"].Cast<Il2CppStringArray>().ToList();
         pets.Add(t.name);
         foreach (var pet in pets.ToArray())
         {
-            if (!AddressableLoader.groups["CardData"].lookup.ContainsKey(pet))
+            if (pet!=t.name &&allCards.Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null && WildFrostAPIMod.CardDataAdditions.Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null)
             {
-                pets.Remove(t.name);
+                pets.Remove(pet);
             }
         }
-        MetaprogressionSystem.data["pets"] = pets.Dictinct().ToArray().Cast<Il2CppSystem.Object>();
+        var v = pets.Dictinct().ToArray();
+        MetaprogressionSystem.data["pets"] =v.Cast<Il2CppSystem.Object>();
+        var unlocks =new Il2CppSystem.Collections.Generic.List<string>();
+        for (int i = 0; i < v.Length; i++)
+        {
+            unlocks.Add("Pet "+i);
+        }
+        SaveSystem.SaveProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks", unlocks);
+        string name = t.name;
+        yield return new WaitUntil((Func<bool>)(()=> AddressableLoader.groups["CardData"].lookup.ContainsKey(name)));
         var selectStartingPet = UnityEngine.Object.FindObjectOfType<SelectStartingPet>();
         if (selectStartingPet != null)
         {
-            selectStartingPet.group.Clear();
+            selectStartingPet.pets.Clear();
+            selectStartingPet.group.ClearAndDestroyAllImmediately();
             CoroutineManager.Start(selectStartingPet.SetUp());
         }
+        CoroutineManager.instance.StopCoroutine("AddToPetsIE");
 
+    }
+    public static CardData AddToPets(this CardData t)
+    {
+        CoroutineManager.instance.StartCoroutine(AddToPetsIE(t));
         return t;
     }
 
