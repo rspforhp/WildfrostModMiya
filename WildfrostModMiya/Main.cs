@@ -28,7 +28,7 @@ using Random = System.Random;
 
 namespace WildfrostModMiya;
 
-[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.1.3.1")]
+[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.1.7.0")]
 public class WildFrostAPIMod : BasePlugin
 {
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
