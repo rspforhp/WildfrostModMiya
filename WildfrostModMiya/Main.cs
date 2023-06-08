@@ -15,6 +15,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using BepInEx.Unity.IL2CPP.Utils;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Cpp2IL.Core.Attributes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using WildfrostModMiya;
@@ -41,12 +42,26 @@ public class WildFrostAPIMod : BasePlugin
         static void Postfix(PreloadAddressableGroup __instance)
         {
             Instance.Log.LogInfo("Preload assets run! " + CardDataAdditions.Count);
-            ShouldInjectCards = true;
         }
     }
 
+    [HarmonyPatch(typeof(CharacterSelectScreen), nameof(CharacterSelectScreen.Start))]
+    class Test
+    {
+        static System.Collections.IEnumerator IETest(Il2CppSystem.Collections.IEnumerator a)
+        {
+            yield return UpdateIE();
+            yield return a;
+        }
+        [HarmonyPostfix]
+        static Il2CppSystem.Collections.IEnumerator Postfix(Il2CppSystem.Collections.IEnumerator __result,CharacterSelectScreen __instance)
+        {
+            Instance.Log.LogInfo("CharacterSelectScreen start run! " + CardDataAdditions.Count);
+            //WildFrostAPIMod.APIGameObject.instance.StartCoroutine(CardAdder.FixPetsAmountQWQ());
+            return IETest(__result).WrapToIl2Cpp();
+        }
+    }
 
-    public static bool ShouldInjectCards;
     internal static List<CardData> CardDataAdditions = new List<CardData>();
     internal static List<(BattleData,int)> BattleDataAdditions = new List<(BattleData,int)>();
     internal static List<StatusEffectData> StatusEffectDataAdditions = new List<StatusEffectData>();
@@ -248,22 +263,30 @@ public class WildFrostAPIMod : BasePlugin
 
     public class APIGameObject : MonoBehaviour
     {
+        public static APIGameObject instance;
+
+        private void Awake()
+        {
+            instance = this;
+        }
+
         public void OnGUI()
         {
             DIRTY_DebugGui();
         }
 
-        public void Update()
-        {
-            this.StartCoroutine(UpdateIE());
-        }
+     
 
     }
     
             public static System.Collections.IEnumerator UpdateIE()
         {
-            if (
-                ShouldInjectCards && AddressableLoader.groups.ContainsKey("CardData"))
+            Instance.Log.LogInfo("UPDATEIE HAS RUN!");
+            if (!AddressableLoader.groups.ContainsKey("CardData"))
+            {
+                yield return  AddressableLoader.LoadGroup("CardData");
+            }
+            if ( AddressableLoader.groups.ContainsKey("CardData"))
             {
                 if (!AddressableLoader.IsGroupLoaded("StatusEffectData"))
                 {
@@ -294,6 +317,8 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     foreach (var oldCard in StatusEffectDataAdditions)
                     {
+                        AddressableLoader.groups["StatusEffectData"].list.Remove(oldCard);
+                        AddressableLoader.groups["StatusEffectData"].lookup.Remove(oldCard.name);
                         UnityEngine.Object.Destroy(oldCard);
                     }
                 }
@@ -316,6 +341,8 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     foreach (var oldCard in CardUpgradeDataAdditions)
                     {
+                        AddressableLoader.groups["CardUpgradeData"].list.Remove(oldCard);
+                        AddressableLoader.groups["CardUpgradeData"].lookup.Remove(oldCard.name);
                         UnityEngine.Object.Destroy(oldCard);
                     }
                 }
@@ -337,6 +364,8 @@ public class WildFrostAPIMod : BasePlugin
                 {
                     foreach (var oldCard in CardDataAdditions)
                     {
+                        AddressableLoader.groups["CardData"].list.Remove(oldCard);
+                        AddressableLoader.groups["CardData"].lookup.Remove(oldCard.name);
                         UnityEngine.Object.Destroy(oldCard);
                     }
                 }
@@ -354,9 +383,15 @@ public class WildFrostAPIMod : BasePlugin
                     Instance.Log.LogInfo($"Card {c.name} is injected by api!");
                 }
 
+                WildFrostAPIMod.APIGameObject.instance.StartCoroutine(CardAdder.FixPetsAmountQWQ());
+              WildFrostAPIMod.APIGameObject.instance.StartCoroutine(DoBattleStuff());
 
-                ShouldInjectCards = false;
-                
+
+            }
+        }
+
+            public static System.Collections.IEnumerator DoBattleStuff()
+            {
                 yield return new WaitUntil((Func<bool>) (() =>
                     UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>()).Length>0));
                 var allCampaings = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>());
@@ -370,10 +405,10 @@ public class WildFrostAPIMod : BasePlugin
                     if (!Match(ca)) continue;
                     CampaignPopulator fullGen=ca.Cast<CampaignPopulator>();
                     if(BattleDataAdditions!=null)
-                    foreach (var old in  BattleDataAdditions )
-                    {
-                        UnityEngine.Object.Destroy(old.Item1);
-                    }
+                        foreach (var old in  BattleDataAdditions )
+                        {
+                            UnityEngine.Object.Destroy(old.Item1);
+                        }
                     BattleDataAdditions = new List<(BattleData, int)>();
                     BattleAdder.LaunchEvent();
                     foreach (var battleDataAddition in BattleDataAdditions)
@@ -384,11 +419,8 @@ public class WildFrostAPIMod : BasePlugin
                         fullGen.tiers[battleDataAddition.Item2].battlePool = battles;
                     }
                 }
-               
-                
-            }
-        }
 
+            }
 
     private APIGameObject _GameObject;
 

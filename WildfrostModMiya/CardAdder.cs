@@ -1310,8 +1310,23 @@ public static class CardAdder
         return distinctNames;
     }
 
+    public static System.Collections.IEnumerator FixPetsAmountQWQ()
+    {
+        yield return new WaitUntil((Func<bool>) (() => UnityEngine.Object.FindObjectOfType<SelectStartingPet>() != null));
+         var selectStartingPet = UnityEngine.Object.FindObjectOfType<SelectStartingPet>();
+         yield return new WaitUntil((Func<bool>) (() => selectStartingPet.group.Count>selectStartingPet.pets.Count));
 
-    public static System.Collections.IEnumerator AddToPetsIE( CardData t)
+        if (selectStartingPet != null)
+        {
+            selectStartingPet.pets.Clear();
+            selectStartingPet.group.ClearAndDestroyAllImmediately();
+            yield return selectStartingPet.SetUp();
+        }
+        CoroutineManager.instance.StopCoroutine("FixPetsAmountQWQ");
+    }
+    
+
+    public static void AddToPetsIE( CardData t)
     {
         WildFrostAPIMod.Instance.Log.LogInfo($"Card {t.name} is added to pets!");
         var allCards = AddressableLoader.groups["CardData"].list;
@@ -1332,21 +1347,10 @@ public static class CardAdder
             unlocks.Add("Pet "+i);
         }
         SaveSystem.SaveProgressData<Il2CppSystem.Collections.Generic.List<string>>("petHutUnlocks", unlocks);
-        string name = t.name;
-        yield return new WaitUntil((Func<bool>)(()=> AddressableLoader.groups["CardData"].lookup.ContainsKey(name)));
-        var selectStartingPet = UnityEngine.Object.FindObjectOfType<SelectStartingPet>();
-        if (selectStartingPet != null)
-        {
-            selectStartingPet.pets.Clear();
-            selectStartingPet.group.ClearAndDestroyAllImmediately();
-            CoroutineManager.Start(selectStartingPet.SetUp());
-        }
-        CoroutineManager.instance.StopCoroutine("AddToPetsIE");
-
     }
     public static CardData AddToPets(this CardData t)
     {
-        CoroutineManager.instance.StartCoroutine(AddToPetsIE(t));
+        AddToPetsIE(t);
         return t;
     }
 
