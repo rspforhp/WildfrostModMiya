@@ -122,7 +122,8 @@ public static class JSONApi
                     .SetBloodProfile(test.bloodProfile)
                     .SetIdleAnimationProfile(test.idleAnimation)
                 ;
-            foreach (var pair in test.customData) card.SetCustomData(pair.Key, (Object)pair.Value);
+            if(test.customData!=null)
+               foreach (var pair in test.customData) card.SetCustomData(pair.Key, (Object)pair.Value);
 
             card.canPlayOnBoard = test.CanPlayOnBoard;
             card.canPlayOnEnemy = test.CanPlayOnEnemy;
