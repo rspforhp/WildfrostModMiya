@@ -22,7 +22,7 @@ public static class StatusEffectAdder
 
     public static T RegisterStatusEffectInApi<T>(this T t) where T : StatusEffectData
     {
-        WildFrostAPIMod.StatusEffectDataAdditions.Add(t);
+        WildFrostAPIMod.GroupAdditions["StatusEffectData"].Add(t);
         return t;
     }
     
@@ -36,10 +36,15 @@ public static class StatusEffectAdder
         return newData;
     }
 
-    
-    
+
+
+    internal static bool IsRunning = false;
     internal static void LaunchEvent()
     {
-        OnAskForAddingStatusEffects?.Invoke(0);
+        IsRunning = true;
+        if(WildFrostAPIMod.GroupAdditions["StatusEffectData"].Count<=0)
+            OnAskForAddingStatusEffects?.Invoke(0);
+        IsRunning = false;
+
     }
 }

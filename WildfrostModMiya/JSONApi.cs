@@ -70,8 +70,7 @@ public static class JSONApi
                 var data = new CardData.StatusEffectStacks
                 {
                     count = effectData.count,
-                    data = AddressableLoader.groups["StatusEffectData"].lookup[effectData.name]
-                        .Cast<StatusEffectData>()
+                    data =effectData.name.StatusEffectData()
                 };
                 WildFrostAPIMod.Instance.Log.LogInfo(effectData.name + " " + effectData.count +
                                                             " added to json attack effects");
@@ -84,8 +83,7 @@ public static class JSONApi
                 var data = new CardData.StatusEffectStacks
                 {
                     count = effectData.count,
-                    data = AddressableLoader.groups["StatusEffectData"].lookup[effectData.name]
-                        .Cast<StatusEffectData>()
+                    data = effectData.name.StatusEffectData()
                 };
                 startWithEffects.Add(data);
             }
@@ -104,8 +102,7 @@ public static class JSONApi
                 var data = new CardData.TraitStacks
                 {
                     count = effectData.count,
-                    data = AddressableLoader.groups["TraitData"].lookup[effectData.name]
-                        .Cast<TraitData>()
+                    data =effectData.name.TraitData()
                 };
                 cardTraits.Add(data);
             }

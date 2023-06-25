@@ -1,4 +1,8 @@
-﻿using HarmonyLib;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using HarmonyLib;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.Collections;
@@ -14,58 +18,206 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
+using BepInEx.Unity.IL2CPP.Hook;
 using BepInEx.Unity.IL2CPP.Utils;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Cpp2IL.Core.Attributes;
+using Il2CppInterop.Common;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
+using TinyJson;
+using UnityEngine.ResourceManagement;
+using UnityEngine.ResourceManagement.Exceptions;
+using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine.ResourceManagement.ResourceProviders;
 using WildfrostModMiya;
 using ClassInjector = Il2CppInterop.Runtime.Injection.ClassInjector;
 using Color = System.Drawing.Color;
 using Il2CppType = Il2CppInterop.Runtime.Il2CppType;
+using MethodInfo = System.Reflection.MethodInfo;
 using Object = Il2CppSystem.Object;
 using Random = System.Random;
-
+using BepInEx.IL2CPP;
+using Il2CppInterop.Runtime.InteropTypes;
+using WildfrostModMiya.Hook.Dobby;
+using WildfrostModMiya.Hook.Funchook;
+using Assembly = System.Reflection.Assembly;
+using BindingFlags = System.Reflection.BindingFlags;
+using IDetour = Il2CppInterop.Runtime.Injection.IDetour;
+using MethodBase = System.Reflection.MethodBase;
 
 namespace WildfrostModMiya;
 
-[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.1.7.0")]
+[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.2.0.0")]
 public class WildFrostAPIMod : BasePlugin
 {
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
     public static WildFrostAPIMod Instance;
 
 
-    [HarmonyPatch(typeof(PreloadAddressableGroup), nameof(PreloadAddressableGroup.Start))]
-    class StartPatch
-    {
-        [HarmonyPostfix]
-        static void Postfix(PreloadAddressableGroup __instance)
+    internal static Dictionary<string, List<UnityEngine.Object>>
+        GroupAdditions = new Dictionary<string, List<UnityEngine.Object>>()
         {
-            Instance.Log.LogInfo("Preload assets run! " + CardDataAdditions.Count);
+            { "CardData", new List<UnityEngine.Object>() },
+            { "StatusEffectData", new List<UnityEngine.Object>() },
+            { "CardUpgradeData", new List<UnityEngine.Object>() }
+        };
+
+    internal static Dictionary<string, Action<int>>
+        EventsCallers = new Dictionary<string, Action<int>>()
+        {
+            { "CardData", delegate(int i) { CardAdder.LaunchEvent(); } },
+            { "StatusEffectData", delegate(int i) { StatusEffectAdder.LaunchEvent(); } },
+            { "CardUpgradeData", delegate(int i) { CardUpgradeAdder.LaunchEvent(); } }
+        };
+
+/*
+
+    [HarmonyPatch(typeof(Addressables))]
+    class LoadAssetsAsyncPatch
+    {
+        private static MethodInfo Info;
+
+        [HarmonyTargetMethods]
+        static IEnumerable<MethodInfo> GetAllMethods()
+        {
+            var a = Array.ConvertAll(
+                    AccessTools.GetDeclaredMethods(typeof(Addressables)).FindAll(m => m.Name == "LoadAssetsAsync")
+                        .ToArray(),
+                    delegate(MethodInfo info) { return info.MakeGenericMethod(typeof(UnityEngine.Object)); }).ToList()
+                .FindAll(delegate(MethodInfo info)
+                {
+                    if (info.ReturnType ==
+                        typeof(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<
+                            Il2CppSystem.Collections.Generic.IList<UnityEngine.Object>>) &&
+                        info.GetParameters()[0].ParameterType == typeof(Il2CppSystem.Object) &&
+                        info.GetParameters()[1].ParameterType == typeof(Il2CppSystem.Action<UnityEngine.Object>))
+                        return true;
+                    return false;
+                }).AsEnumerable();
+            Info = a.ToArray()[0];
+            return a;
+        }
+
+        [HarmonyPostfix]
+        static void Postfix(
+            UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<
+                Il2CppSystem.Collections.Generic.IList<UnityEngine.Object>> __result, Il2CppSystem.Object __0,
+            Il2CppSystem.Action<UnityEngine.Object> __1)
+        {
+            Instance.Log.LogInfo(__0.ToString());
+            //Debug.Log("Load all assets patch");
         }
     }
 
-    [HarmonyPatch(typeof(CharacterSelectScreen), nameof(CharacterSelectScreen.Start))]
-    class Test
+
+    [HarmonyPatch(typeof(ResourceManager), nameof(ResourceManager.ProvideResourceGroupCached),new []{typeof(Il2CppSystem.Collections.Generic.IList<IResourceLocation>), typeof(int),typeof(Il2CppSystem.Type),typeof(Il2CppSystem.Action<AsyncOperationHandle>),typeof(bool)})]
+    class GetResourceProviderPatch
     {
-        static System.Collections.IEnumerator IETest(Il2CppSystem.Collections.IEnumerator a)
+
+        public static System.Collections.IEnumerator Test(AsyncOperationHandle<Il2CppSystem.Collections.Generic.IList<AsyncOperationHandle>>   __result)
         {
-            yield return UpdateIE();
-            yield return a;
+           __result = __result.MemberwiseClone().Cast<AsyncOperationHandle<Il2CppSystem.Collections.Generic.IList<AsyncOperationHandle>>>();
+            var e = __result.WaitForCompletion();
+            foreach (var thing in e.Cast<Il2CppSystem.Collections.Generic.List<AsyncOperationHandle>>())
+            {
+                Debug.Log(thing+" test");
+                Debug.Log(thing.WaitForCompletion().Cast<AssetBundleResource>()?.+" test2");
+            }
+            yield break ;
+            
         }
+       
         [HarmonyPostfix]
-        static Il2CppSystem.Collections.IEnumerator Postfix(Il2CppSystem.Collections.IEnumerator __result,CharacterSelectScreen __instance)
+        static void Postfix(Il2CppSystem.Collections.Generic.IList<IResourceLocation> locations, int groupHash, Il2CppSystem.Type desiredType, Il2CppSystem.Action<AsyncOperationHandle> callback, bool releaseDependenciesOnFailure,ref ResourceManager __instance, ref AsyncOperationHandle<Il2CppSystem.Collections.Generic.IList<AsyncOperationHandle>>   __result)
         {
-            Instance.Log.LogInfo("CharacterSelectScreen start run! " + CardDataAdditions.Count);
-            //WildFrostAPIMod.APIGameObject.instance.StartCoroutine(CardAdder.FixPetsAmountQWQ());
-            return IETest(__result).WrapToIl2Cpp();
+            Debug.Log("test "+__result.LocationName+" ");
+            APIGameObject.instance?.StartCoroutine(Test(__result));
+      
         }
     }
 
-    internal static List<CardData> CardDataAdditions = new List<CardData>();
-    internal static List<(BattleData,int)> BattleDataAdditions = new List<(BattleData,int)>();
-    internal static List<StatusEffectData> StatusEffectDataAdditions = new List<StatusEffectData>();
-    internal static List<CardUpgradeData> CardUpgradeDataAdditions = new List<CardUpgradeData>();
+
+*/
+
+    private sealed class
+        MethodInfoStoreGeneric_ProvideResources_Public_AsyncOperationHandle_1_IList_1_TObject_IList_1_IResourceLocation_Boolean_Action_1_TObject_0<
+            TObject>
+    {
+        internal static System.IntPtr Pointer = IL2CPP.il2cpp_method_get_from_reflection(
+            IL2CPP.Il2CppObjectBaseToPtrNotNull(
+                (Il2CppObjectBase)new Il2CppSystem.Reflection.MethodInfo(IL2CPP.il2cpp_method_get_object(
+                    IL2CPP.GetIl2CppMethodByToken(Il2CppClassPointerStore<ResourceManager>.NativeClassPtr, 100663406),
+                    Il2CppClassPointerStore<ResourceManager>.NativeClassPtr)).MakeGenericMethod(
+                    new Il2CppReferenceArray<Il2CppSystem.Type>(new Il2CppSystem.Type[1]
+                    {
+                        Il2CppSystem.Type.internal_from_handle(
+                            IL2CPP.il2cpp_class_get_type(Il2CppClassPointerStore<TObject>.NativeClassPtr))
+                    }))));
+    }
+
+
+    private unsafe static void OurAttackCheck(IntPtr t, IntPtr items)
+    {
+        var group = new AddressableLoader.Group(t);
+
+        group.list = new Il2CppSystem.Collections.Generic.List<UnityEngine.Object>();
+        group.lookup = new Il2CppSystem.Collections.Generic.Dictionary<string, UnityEngine.Object>();
+        Il2CppSystem.Collections.Generic.IEnumerable<UnityEngine.Object> data =
+            new Il2CppSystem.Collections.Generic.IEnumerable<UnityEngine.Object>(items);
+        foreach (UnityEngine.Object @object in data.ToArray())
+        {
+            group.list.Add(@object);
+            group.lookup[AddressableLoader.Group.GetName(@object)] = @object;
+        }
+
+        var typeName = data.ToArray()[0].GetIl2CppType().ToString();
+        if (EventsCallers.ContainsKey(typeName))
+        {
+            EventsCallers[typeName].Invoke(0);
+        }
+
+        Instance.Log.LogInfo(typeName + " is the typename");
+        if (GroupAdditions.ContainsKey(typeName))
+        {
+            foreach (UnityEngine.Object @object in GroupAdditions[typeName].ToArray())
+            {
+                Instance.Log.LogInfo("Added a " + typeName + " " + @object.name);
+                group.list.Add(@object);
+                group.lookup[AddressableLoader.Group.GetName(@object)] = @object;
+            }
+        }
+    }
+
+    private static AttackCheckDelegate Test = (AttackCheckDelegate)OurAttackCheck;
+    private static AttackCheckDelegate OriginalHammerMethod;
+
+    //Il2CppSystem.Collections.Generic.IEnumerable<UnityEngine.Object> data
+    private unsafe delegate void AttackCheckDelegate(IntPtr t, IntPtr items);
+
+ 
+
+
+
+    /*
+    [HarmonyPatch(typeof(AddressableLoader))]
+    private static class LoadAssetsAsyncPatch
+    {
+        private static Type[] TypesArray = new[] {typeof(CardData)};
+        [HarmonyTargetMethods]
+        private static IEnumerable<MethodInfo> GetAllMethods()
+        {
+            return new List<MethodInfo>(){ AccessTools.Method(typeof(AddressableLoader), "StoreGroup").MakeGenericMethod(typeof(CardData))}.AsEnumerable(); ;
+        }
+
+        [HarmonyPostfix]
+        private static void Postfix(ref string name)
+        {
+            Debug.Log("Load all assets patch "+ name);
+        }
+    }
+*/
 
 
     public void AddDebugStuff()
@@ -111,12 +263,6 @@ public class WildFrostAPIMod : BasePlugin
         };
     }
 
-    private static bool MatchCardName(Object o, string name)
-    {
-        var card = o.Cast<CardData>();
-        return card.name.Equals(name, StringComparison.OrdinalIgnoreCase) ||
-               card.title.Equals(name, StringComparison.OrdinalIgnoreCase);
-    }
 
     private static System.Collections.IEnumerator DIRTY_ConsoleStuff()
     {
@@ -125,7 +271,7 @@ public class WildFrostAPIMod : BasePlugin
         go?.Toggle();
     }
 
-    private static int seed=-1;
+    private static int seed = -1;
 
     [HarmonyPatch(typeof(CampaignData), nameof(CampaignData.Init))]
     class Patch
@@ -133,7 +279,7 @@ public class WildFrostAPIMod : BasePlugin
         [HarmonyPostfix]
         static void Postfix(CampaignData __instance)
         {
-            if (Instance.configSeedManipulation.Value&& seed!=-1)
+            if (Instance.configSeedManipulation.Value && seed != -1)
             {
                 __instance.Seed = seed;
             }
@@ -179,7 +325,7 @@ public class WildFrostAPIMod : BasePlugin
             {
                 CardData card = null;
                 foreach (var cardinList in AddressableLoader.groups["CardData"].list)
-                    if (MatchCardName(cardinList, "API.DebugCard"))
+                    if (cardinList.Cast<CardData>().name == "API.DebugCard")
                     {
                         card = cardinList.Cast<CardData>();
                         break;
@@ -202,61 +348,79 @@ public class WildFrostAPIMod : BasePlugin
     }
 
 
-    internal static List<CardAnimationProfile> VanillaAnimationProfiles;
+    internal static List<CardAnimationProfile> VanillaAnimationProfiles
+    {
+        get
+        {
+            if (_VanillaAnimationProfiles == null)
+            {
+                CreateVanillaAnimationProfiles();
+            }
+
+            return _VanillaAnimationProfiles;
+        }
+    }
+
+    internal static List<CardAnimationProfile> _VanillaAnimationProfiles;
 
     private static void CreateVanillaAnimationProfiles()
     {
-        VanillaAnimationProfiles = new List<CardAnimationProfile>();
+        _VanillaAnimationProfiles = new List<CardAnimationProfile>();
         var list = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CardAnimationProfile>());
         foreach (var profile in list)
         {
-            VanillaAnimationProfiles.Add(profile.Cast<CardAnimationProfile>());
+            _VanillaAnimationProfiles.Add(profile.Cast<CardAnimationProfile>());
         }
     }
 
-    internal static List<BloodProfile> VanillaBloodProfiles;
+    internal static List<BloodProfile> VanillaBloodProfiles
+    {
+        get
+        {
+            if (_VanillaBloodProfiles == null)
+            {
+                CreateVanillaBloodProfiles();
+            }
+
+            return _VanillaBloodProfiles;
+        }
+    }
+
+    internal static List<BloodProfile> _VanillaBloodProfiles;
 
     private static void CreateVanillaBloodProfiles()
     {
-        VanillaBloodProfiles = new List<BloodProfile>();
+        _VanillaBloodProfiles = new List<BloodProfile>();
         var list = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<BloodProfile>());
         foreach (var profile in list)
         {
-            VanillaBloodProfiles.Add(profile.Cast<BloodProfile>());
+            _VanillaBloodProfiles.Add(profile.Cast<BloodProfile>());
         }
     }
 
-    internal static List<TargetMode> VanillaTargetModes;
+    internal static List<TargetMode> VanillaTargetModes
+    {
+        get
+        {
+            if (_VanillaTargetModes == null)
+            {
+                CreateVanillaTargetModes();
+            }
+
+            return _VanillaTargetModes;
+        }
+    }
+
+    internal static List<TargetMode> _VanillaTargetModes;
+
 
     private static void CreateVanillaTargetModes()
     {
-        VanillaTargetModes = new List<TargetMode>();
+        _VanillaTargetModes = new List<TargetMode>();
         var list = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<TargetMode>());
         foreach (var profile in list)
         {
-            VanillaTargetModes.Add(profile.Cast<TargetMode>());
-        }
-    }
-
-
-    [HarmonyPatch(typeof(JournalCardManager), nameof(JournalCardManager.LoadCardData))]
-    class LoadCardDataPatch
-    {
-        [HarmonyPostfix]
-        static void Postfix(JournalCardManager.Category category, JournalCardManager __instance,
-            ref Il2CppSystem.Collections.Generic.List<Il2CppSystem.Collections.Generic.KeyValuePair<string, CardData>>
-                __result)
-        {
-            foreach (var data in CardDataAdditions)
-            {
-                if (data.cardType == category.cards[0].Asset.Cast<CardData>().cardType)
-                {
-                    __result.Add(new Il2CppSystem.Collections.Generic.KeyValuePair<string, CardData>(
-                        data.title, data
-                    ));
-                    __instance.discovered.Add(data.name);
-                }
-            }
+            _VanillaTargetModes.Add(profile.Cast<TargetMode>());
         }
     }
 
@@ -274,153 +438,9 @@ public class WildFrostAPIMod : BasePlugin
         {
             DIRTY_DebugGui();
         }
-
-     
-
     }
-    
-            public static System.Collections.IEnumerator UpdateIE()
-        {
-            Instance.Log.LogInfo("UPDATEIE HAS RUN!");
-            if (!AddressableLoader.groups.ContainsKey("CardData"))
-            {
-                yield return  AddressableLoader.LoadGroup("CardData");
-            }
-            if ( AddressableLoader.groups.ContainsKey("CardData"))
-            {
-                if (!AddressableLoader.IsGroupLoaded("StatusEffectData"))
-                {
-                    yield return AddressableLoader.LoadGroup("StatusEffectData");
-                }
 
-                if (!AddressableLoader.IsGroupLoaded("CardUpgradeData"))
-                {
-                    yield return AddressableLoader.LoadGroup("CardUpgradeData");
-                }
-
-                if (!AddressableLoader.IsGroupLoaded("TraitData"))
-                {
-                    yield return AddressableLoader.LoadGroup("TraitData");
-                }
-
-
-                CreateVanillaAnimationProfiles();
-                if (VanillaAnimationProfiles.Count == 0)  yield break;
-
-                CreateVanillaBloodProfiles();
-                if (VanillaBloodProfiles.Count == 0)  yield break;
-
-                CreateVanillaTargetModes();
-                if (VanillaTargetModes.Count == 0)  yield break;
-
-                if (StatusEffectDataAdditions != null)
-                {
-                    foreach (var oldCard in StatusEffectDataAdditions)
-                    {
-                        AddressableLoader.groups["StatusEffectData"].list.Remove(oldCard);
-                        AddressableLoader.groups["StatusEffectData"].lookup.Remove(oldCard.name);
-                        UnityEngine.Object.Destroy(oldCard);
-                    }
-                }
-                StatusEffectDataAdditions = new();
-
-                StatusEffectAdder.LaunchEvent();
-                for (int i = 0; i < StatusEffectDataAdditions.Count; i++)
-                {
-                    var c = StatusEffectDataAdditions[i];
-                    if (!AddressableLoader.groups["StatusEffectData"].lookup.ContainsKey(c.name))
-                    {
-                        AddressableLoader.groups["StatusEffectData"].list.Add(c);
-                        AddressableLoader.groups["StatusEffectData"].lookup[c.name] = c;
-                    }
-
-                    Instance.Log.LogInfo($"StatusEffect {c.name} is injected by api!");
-                }
-
-                if (CardUpgradeDataAdditions != null)
-                {
-                    foreach (var oldCard in CardUpgradeDataAdditions)
-                    {
-                        AddressableLoader.groups["CardUpgradeData"].list.Remove(oldCard);
-                        AddressableLoader.groups["CardUpgradeData"].lookup.Remove(oldCard.name);
-                        UnityEngine.Object.Destroy(oldCard);
-                    }
-                }
-                CardUpgradeDataAdditions = new List<CardUpgradeData>();
-                CardUpgradeAdder.LaunchEvent();
-                for (int i = 0; i < CardUpgradeDataAdditions.Count; i++)
-                {
-                    var c = CardUpgradeDataAdditions[i];
-                    if (!AddressableLoader.groups["CardUpgradeData"].lookup.ContainsKey(c.name))
-                    {
-                        AddressableLoader.groups["CardUpgradeData"].list.Add(c);
-                        AddressableLoader.groups["CardUpgradeData"].lookup[c.name] = c;
-                    }
-
-                    Instance.Log.LogInfo($"CardUpgradeData {c.name} is injected by api!");
-                }
-
-                if (CardDataAdditions != null)
-                {
-                    foreach (var oldCard in CardDataAdditions)
-                    {
-                        AddressableLoader.groups["CardData"].list.Remove(oldCard);
-                        AddressableLoader.groups["CardData"].lookup.Remove(oldCard.name);
-                        UnityEngine.Object.Destroy(oldCard);
-                    }
-                }
-                CardDataAdditions = new List<CardData>();
-                CardAdder.LaunchEvent();
-                for (int i = 0; i < CardDataAdditions.Count; i++)
-                {
-                    var c = CardDataAdditions[i];
-                    if (!AddressableLoader.groups["CardData"].lookup.ContainsKey(c.name))
-                    {
-                        AddressableLoader.groups["CardData"].list.Add(c);
-                        AddressableLoader.groups["CardData"].lookup.Add(c.name, c);
-                    }
-
-                    Instance.Log.LogInfo($"Card {c.name} is injected by api!");
-                }
-
-                WildFrostAPIMod.APIGameObject.instance.StartCoroutine(CardAdder.FixPetsAmountQWQ());
-              WildFrostAPIMod.APIGameObject.instance.StartCoroutine(DoBattleStuff());
-
-
-            }
-        }
-
-            public static System.Collections.IEnumerator DoBattleStuff()
-            {
-                yield return new WaitUntil((Func<bool>) (() =>
-                    UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>()).Length>0));
-                var allCampaings = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CampaignPopulator>());
-                bool Match(Object a)
-                {
-                    var unityObject = a.Cast<CampaignPopulator>();
-                    return unityObject.name == "CampaignPopulatorFull";
-                }
-                foreach (var ca in allCampaings.ToList())
-                {
-                    if (!Match(ca)) continue;
-                    CampaignPopulator fullGen=ca.Cast<CampaignPopulator>();
-                    if(BattleDataAdditions!=null)
-                        foreach (var old in  BattleDataAdditions )
-                        {
-                            UnityEngine.Object.Destroy(old.Item1);
-                        }
-                    BattleDataAdditions = new List<(BattleData, int)>();
-                    BattleAdder.LaunchEvent();
-                    foreach (var battleDataAddition in BattleDataAdditions)
-                    {
-                        Instance.Log.LogInfo(battleDataAddition+" "+fullGen);
-                        var battles = fullGen.tiers[battleDataAddition.Item2].battlePool;
-                        battles= battles.AddItem(battleDataAddition.Item1).ToArray();
-                        fullGen.tiers[battleDataAddition.Item2].battlePool = battles;
-                    }
-                }
-
-            }
+  
 
     private APIGameObject _GameObject;
 
@@ -430,7 +450,8 @@ public class WildFrostAPIMod : BasePlugin
     private ConfigEntry<bool> configOpenConsoleButton;
     private ConfigEntry<bool> configSeedManipulation;
 
-    public override void Load()
+
+    public unsafe override void Load()
     {
         configWinBattleButton = Config.Bind("Debug.Toggles",
             "WinBattleButton",
@@ -453,6 +474,17 @@ public class WildFrostAPIMod : BasePlugin
 
 
         Instance = this;
+
+
+       
+
+        IntPtr test =
+            *(IntPtr*)(IntPtr)IL2CPP.GetIl2CppMethodByToken(
+                Il2CppClassPointerStore<AddressableLoader.Group>.NativeClassPtr, 100664621);
+        new DobbyDetour(test, Test).Apply();
+        //      OriginalHammerMethod = detour.GenerateTrampoline((MethodBase) typeof (AttackCheckDelegate).GetMethod("Invoke"));
+
+
         Harmony.CreateAndPatchAll(System.Reflection.Assembly.GetExecutingAssembly(), "WildFrost.Miya.WildfrostAPI");
         ClassInjector.RegisterTypeInIl2Cpp<CardAnimationProfile>();
         ClassInjector.RegisterTypeInIl2Cpp<BloodProfile>();

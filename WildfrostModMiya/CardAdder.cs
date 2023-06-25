@@ -19,7 +19,8 @@ public static class CardAdder
 
     internal static void LaunchEvent()
     {
-        OnAskForAddingCards?.Invoke(0);
+        if(WildFrostAPIMod.GroupAdditions["CardData"].Count<=0)
+         OnAskForAddingCards?.Invoke(0);
     }
 
     public static Sprite ToSprite(this Texture2D t, Vector2? v = null)
@@ -42,7 +43,7 @@ public static class CardAdder
     {
         t.SetCustomData("AddedByApi", true);
         t.original = t;
-        WildFrostAPIMod.CardDataAdditions.Add(t);
+        WildFrostAPIMod.GroupAdditions["CardData"].Add(t);
         return t;
     }
 
@@ -101,7 +102,6 @@ public static class CardAdder
         FrenzyBossPhase2,
         Frost,
         GainFrenzyWhenWildUnitKilled,
-        GainGoldRange36,
         GainGold,
         GoatWampusPhase2,
         HaltSpice,
@@ -551,7 +551,6 @@ public static class CardAdder
                 [VanillaStatusEffects.FrenzyBossPhase2] = "FrenzyBossPhase2",
                 [VanillaStatusEffects.Frost] = "Frost",
                 [VanillaStatusEffects.GainFrenzyWhenWildUnitKilled] = "Gain Frenzy When Wild Unit Killed",
-                [VanillaStatusEffects.GainGoldRange36] = "Gain Gold Range (3-6)",
                 [VanillaStatusEffects.GainGold] = "Gain Gold",
                 [VanillaStatusEffects.GoatWampusPhase2] = "GoatWampusPhase2",
                 [VanillaStatusEffects.HaltSpice] = "Halt Spice",
@@ -1039,17 +1038,29 @@ public static class CardAdder
     {
         return VanillaStatusEffectsNamesLookUp[effect].StatusEffectStack(amount);
     }
+    
 
     public static StatusEffectData StatusEffectData(this string name)
     {
-        return AddressableLoader.groups["StatusEffectData"].lookup[name].Cast<StatusEffectData>();
+        if(!StatusEffectAdder.IsRunning)
+          StatusEffectAdder.LaunchEvent();
+        var allEffects = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<StatusEffectData>()).Cast<Il2CppReferenceArray<StatusEffectData>>().ToList();
+        foreach (var a in WildFrostAPIMod.GroupAdditions["StatusEffectData"].Cast<StatusEffectData>())
+        {
+            allEffects.Add(a);
+        }
+
+        var e = allEffects.Find(a => a.name == name);
+        if (e == null) throw new Exception($"Effect with {name} not found");
+        return e?.Cast<StatusEffectData>();
     }
 
     public static CardData.StatusEffectStacks StatusEffectStack(this string name, int amount)
     {
+      
         return new CardData.StatusEffectStacks()
         {
-            data = AddressableLoader.groups["StatusEffectData"].lookup[name].Cast<StatusEffectData>(), count = amount
+            data = name.StatusEffectData(), count = amount
         };
     }
 
@@ -1130,8 +1141,18 @@ public static class CardAdder
     {
         return new CardData.TraitStacks()
         {
-            data = AddressableLoader.groups["TraitData"].lookup[name].Cast<TraitData>(), count = amount
+            data = name.TraitData(), count = amount
         };
+    }
+    
+    public static TraitData TraitData(this VanillaTraits trait)
+    {
+        return VanillaTraitsNamesLookUp[trait].TraitData();
+    }
+    public static TraitData TraitData(this string name)
+    {
+        var allEffects = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<TraitData>()).Cast<Il2CppReferenceArray<TraitData>>().ToList();
+        return allEffects.Find(a=>a.name==name).Cast<TraitData>();
     }
 
 
@@ -1209,7 +1230,7 @@ public static class CardAdder
     public static CardData SetIdleAnimationProfile(this CardData t, string animationProfileName)
     {
         t.idleAnimationProfile =
-            WildFrostAPIMod.VanillaAnimationProfiles?.Find(a =>
+            WildFrostAPIMod.VanillaAnimationProfiles.Find(a =>
                 a != null && a.name.Equals(animationProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.idleAnimationProfile == null)
             throw new Exception($"Animation profile with name {animationProfileName} not found!");
@@ -1257,7 +1278,7 @@ public static class CardAdder
     public static CardData SetBloodProfile(this CardData t, string bloodProfileName)
     {
         t.bloodProfile =
-            WildFrostAPIMod.VanillaBloodProfiles?.Find(a =>
+            WildFrostAPIMod.VanillaBloodProfiles.Find(a =>
                 a != null && a.name.Equals(bloodProfileName, StringComparison.OrdinalIgnoreCase));
         if (t.bloodProfile == null)
             throw new Exception($"Blood profile with name {bloodProfileName} not found!");
@@ -1291,7 +1312,7 @@ public static class CardAdder
 
     public static CardData SetTargetMode(this CardData t, string targetModeName)
     {
-        t.targetMode = WildFrostAPIMod.VanillaTargetModes?.Find(a => a != null && a.name == targetModeName);
+        t.targetMode = WildFrostAPIMod.VanillaTargetModes.Find(a => a != null && a.name == targetModeName);
         return t;
     }
 
@@ -1329,12 +1350,12 @@ public static class CardAdder
     public static void AddToPetsIE( CardData t)
     {
         WildFrostAPIMod.Instance.Log.LogInfo($"Card {t.name} is added to pets!");
-        var allCards = AddressableLoader.groups["CardData"].list;
+        var allCards =UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CardData>()).Cast<Il2CppReferenceArray<CardData>>().ToList();
         var pets = MetaprogressionSystem.data["pets"].Cast<Il2CppStringArray>().ToList();
         pets.Add(t.name);
         foreach (var pet in pets.ToArray())
         {
-            if (pet!=t.name &&allCards.Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null && WildFrostAPIMod.CardDataAdditions.Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null)
+            if (pet!=t.name &&allCards.Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null && WildFrostAPIMod.GroupAdditions["CardData"].Find(a=> !a.IsNullOrDestroyed()&&a.name==pet)==null)
             {
                 pets.Remove(pet);
             }
@@ -1609,11 +1630,13 @@ public static class CardAdder
         cardName=cardName.StartsWith(modName) ? cardName : $"{modName}.{cardName}";
         if (modName == "") cardName= oldName;
         CardData newData = null;
-        var cardWithSameName = AddressableLoader.GetGroup<CardData>("CardData")?.ToArray()?.ToList()
+        var allData = UnityEngine.Object.FindObjectsOfTypeIncludingAssets(Il2CppType.Of<CardData>()).Cast<Il2CppReferenceArray<CardData>>().ToList();
+        var cardWithSameName = allData
             ?.Find(c =>  !c.IsNullOrDestroyed() &&c.name == cardName);
         if (cardWithSameName != null)
         {
             newData = cardWithSameName;
+            return newData;
         }
         else  newData = ScriptableObject.CreateInstance<CardData>();
         newData.titleKey = new LocalizedString();

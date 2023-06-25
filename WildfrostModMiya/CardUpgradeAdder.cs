@@ -1,6 +1,7 @@
 ﻿using Il2CppInterop.Runtime;
 using UnityEngine;
 using UnityEngine.Localization;
+using Object = UnityEngine.Object;
 
 namespace WildfrostModMiya;
 
@@ -60,9 +61,9 @@ public static class CardUpgradeAdder
         t.traitsAffected = list;
         return t;
     }
-    public static CardUpgradeData RegisterCardUpgradeData(this CardUpgradeData t) 
+    public static CardUpgradeData RegisterCardUpgradeData(this CardUpgradeData t)
     {
-        WildFrostAPIMod.CardUpgradeDataAdditions.Add(t);
+        WildFrostAPIMod.GroupAdditions["CardUpgradeData"].Add(t);
         return t;
     }
     
@@ -104,6 +105,7 @@ public static class CardUpgradeAdder
     
     internal static void LaunchEvent()
     {
-        OnAskForAddingCardUpgrades?.Invoke(0);
+        if(WildFrostAPIMod.GroupAdditions["CardUpgradeData"].Count<=0)
+            OnAskForAddingCardUpgrades?.Invoke(0);
     }
 }
