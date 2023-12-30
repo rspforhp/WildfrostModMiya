@@ -15,7 +15,7 @@ using Random = Dead.Random;
 
 namespace WildfrostModMiya;
 
-[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.2.1.0")]
+[BepInPlugin("WildFrost.Miya.WildfrostAPI", "WildfrostAPI", "0.2.2.0")]
 public class WildFrostAPIMod : BasePlugin
 {
     public static string ModsFolder = typeof(WildFrostAPIMod).Assembly.Location.Replace("WildfrostModMiya.dll", "");
@@ -310,7 +310,7 @@ public class WildFrostAPIMod : BasePlugin
         Instance = this;
         var test =
             *(IntPtr*)IL2CPP.GetIl2CppMethodByToken(
-                Il2CppClassPointerStore<AddressableLoader.Group>.NativeClassPtr, 100664621);
+                Il2CppClassPointerStore<AddressableLoader.Group>.NativeClassPtr, 100664736 );
         new DobbyDetour(test, Test).Apply();
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), "WildFrost.Miya.WildfrostAPI");
         ClassInjector.RegisterTypeInIl2Cpp<CardAnimationProfile>();

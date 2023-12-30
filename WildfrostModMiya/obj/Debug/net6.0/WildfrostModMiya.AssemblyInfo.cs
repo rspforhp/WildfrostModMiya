@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WildfrostModMiya")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da5f2cc78e0f5c8872cd31a724143aabfe9c5a5e")]
 [assembly: System.Reflection.AssemblyProductAttribute("WildfrostModMiya")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WildfrostModMiya")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1087,23 +1087,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\": {},
+    "C:\\Users\\Miya\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\MoreSeriousCppProjects\\csharp\\WildfrostModMiya\\WildfrostModMiya\\WildfrostModMiya.csproj",
+      "projectUniqueName": "C:\\Users\\Miya\\Desktop\\WildfrostAPI\\WildfrostModMiya\\WildfrostModMiya\\WildfrostModMiya.csproj",
       "projectName": "WildfrostModMiya",
-      "projectPath": "D:\\MoreSeriousCppProjects\\csharp\\WildfrostModMiya\\WildfrostModMiya\\WildfrostModMiya.csproj",
-      "packagesPath": "C:\\Users\\Kopie.DESKTOP-UQFLITC\\.nuget\\packages\\",
-      "outputPath": "D:\\MoreSeriousCppProjects\\csharp\\WildfrostModMiya\\WildfrostModMiya\\obj\\",
+      "projectPath": "C:\\Users\\Miya\\Desktop\\WildfrostAPI\\WildfrostModMiya\\WildfrostModMiya\\WildfrostModMiya.csproj",
+      "packagesPath": "C:\\Users\\Miya\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Miya\\Desktop\\WildfrostAPI\\WildfrostModMiya\\WildfrostModMiya\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Kopie.DESKTOP-UQFLITC\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Miya\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1112,8 +1112,10 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.bepinex.dev/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {},
+        "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-experimental/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {
@@ -1152,7 +1154,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.304\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }
